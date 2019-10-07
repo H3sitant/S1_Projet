@@ -30,21 +30,22 @@ void loop() {
 Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
 */
 
- /* Avancer(100,2000); //Appel de la fonction pour aller tout droit
-  Rotation180(3,5000);
-  Avancer(100,2000); //Appel de la fonction pour aller tout droit
-  Rotation180(1,200);
+  //Avancer(40,2000); //Appel de la fonction pour aller tout droit
+  //Rotation180(1,2000);
+  //Avancer(40,2000); //Appel de la fonction pour aller tout droit
+  //Rotation180(1,2000);
   //RadiusTurn(25,360,0,200);
+  //delay(5000);
 
 
-  RadiusTurn(25,239,0,0);
+  /* RadiusTurn(25,239,0,0);
   Avancer(87.02,0); //Appel de la fonction pour aller tout droit
   RadiusTurn(25,239,1,0);
   Avancer(87.02,0); //Appel de la fonction pour aller tout droit
-*/
+  */
 
   
-  // put your main code here, to run repeatedly:
+  /*// put your main code here, to run repeatedly:
   Avancer( 113,0); //Appel de la fonction pour aller tout droit
   Tourner ( 1, 90,100); // Appel de la fonction pour tourner à gauche 900
   Avancer( 72 ,100 ); //Appel de la fonction pour aller tout droit
@@ -56,7 +57,7 @@ Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
   Avancer(50,100); //Appel de la fonction pour aller tout droit
   Tourner (0, 45,100); // Appel de la fonction pour tourner à droite 450
   Avancer (115,100); //Appel de la fonction pour aller tout droit
-  Rotation180(0.5,100);
+  Rotation180(1,100);
   Avancer (115,100);
   Tourner (1, 45,100);
   Avancer(50,100);
@@ -68,8 +69,9 @@ Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
   Avancer( 72 ,100 );
   Tourner ( 0, 90,100);
   Avancer( 120,0);
-  Rotation180(2.5,100);
-  
+  Rotation180(3,100);
+  */
+  Avancer(304.8, 3);
 }
 
 /*
@@ -112,7 +114,7 @@ Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
   ENCODER_ReadReset(0);
   ENCODER_ReadReset(1);
 
-  float NbPulse=((2*3200*3.1416*L*Rotation)/(23.9389*360));//(2*PI*18.350(Distance entre roue)*3200*Rotation)/(360*23.9389(Nb cm par tour de roue))
+  float NbPulse=((2*3200*3.14*L*Rotation)/(23.9389*360));//(2*PI*18.350(Distance entre roue)*3200*Rotation)/(360*23.9389(Nb cm par tour de roue))
   
   MOTOR_SetSpeed(Direction, speed);
   int PulseCount = ENCODER_Read(Direction);
@@ -134,13 +136,14 @@ void Rotation180 (int NbRot, int TempsAttente)
 {
   ENCODER_ReadReset(0);
   ENCODER_ReadReset(1);
-  float NbPulse=((3200*3.1416*L*NbRot)/(23.9389));
+  float NbPulse=((3200*3.14*L*NbRot*0.95)/(2*23.9389));
   MOTOR_SetSpeed(0, speed);
   MOTOR_SetSpeed(1,-speed);
   int PulseCount=ENCODER_Read(0);
   while(PulseCount<=NbPulse)
   {
       PulseCount=ENCODER_Read(0);
+
   }
   MOTOR_SetSpeed(0, 0);
   MOTOR_SetSpeed(1, 0);
@@ -161,7 +164,7 @@ void RadiusTurn(float Radius,int angle,int Direction  ,int TempsAttente)
 
   ENCODER_ReadReset(0);
   ENCODER_ReadReset(1);
-  float NbPulse=((3200*2*3.1416*Radius*angle)/(360*23.9389));
+  float NbPulse=((3200*2*3.1416*Radius*angle*0.95)/(360*23.9389));
   int PulseCount;
   MOTOR_SetSpeed(Direction, speed);
   if (Direction==0)
