@@ -33,6 +33,7 @@ void setup() {
     Serial.println("test1");
     delay(5000);
     BoardInit();
+    pinMode(41,OUTPUT);
 
 
   if (tcs.begin()) {
@@ -51,6 +52,7 @@ void loop()
 {
     if(ROBUS_IsBumper(3)==true)
     {
+      Serial.print("detecteur ligne");
       float newSpeed = detecteurLigne(0.34);
     }
     if(ROBUS_IsBumper(2)==true)
@@ -324,9 +326,12 @@ Dectecteur de ligne
  float detecteurLigne(float TargetSpeed)
  {
   float vitesseRoue=0;
-  float tension = analogRead(82)/204.8;
+  digitalWrite(35,HIGH);
+  float tension = analogRead(A8)*5.0/1023.0;
   Serial.println(tension);
-  Serial.println(analogRead(82));
+  delay(500);
+
+  Serial.println(analogRead(60));
   //En fonction de détection de Blanc 
   if (tension<0.5)//option 1(Aucun) 0.00 
   {
@@ -371,4 +376,18 @@ Dectecteur de ligne
   return pid;*/
   delay(1000);
   return vitesseRoue;
+ }
+ 
+ /*
+ ==========================
+ IR sensor
+ ==========================
+  */
+ float IR_Sensor()
+ {
+	 uint16_t distance=ROBUS_ReadIR(0);    // reads the value of the sharp sensor
+	 //Serial.println(val);            // prints the value of the sensor to the serial monitor
+	 delay(200);
+   return;
+                       // wait for this much time before printing next value
  }
