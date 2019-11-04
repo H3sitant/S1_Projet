@@ -19,6 +19,7 @@ void servomoteurPrendre ();
 void servomoteurLacher ();
 float detecteurLigne(float TargetSpeed);
 
+float IR_Sensor();
 
 //Initialisation des variables globales
 float speed=0.4;
@@ -59,6 +60,8 @@ void loop()
     {
       int couleur = detectionCouleur();
     }
+
+    IR_Sensor();
 }
 /*
 ==========================
@@ -385,8 +388,8 @@ Dectecteur de ligne
   */
  float IR_Sensor()
  {
-	 uint16_t distance=ROBUS_ReadIR(0);    // reads the value of the sharp sensor
-	 //Serial.println(val);            // prints the value of the sensor to the serial monitor
+	 uint16_t distance=ROBUS_ReadIR(1);    // reads the value of the sharp sensor
+	 Serial.println(distance);            // prints the value of the sensor to the serial monitor
 	 delay(200);
    return;
                        // wait for this much time before printing next value
