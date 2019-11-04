@@ -18,7 +18,6 @@ int detectionCouleur();
 void servomoteurPrendre ();
 void servomoteurLacher ();
 float detecteurLigne(float TargetSpeed);
-
 float IR_Sensor();
 
 //Initialisation des variables globales
@@ -51,7 +50,29 @@ void setup() {
  */
 void loop() 
 {
-    if(ROBUS_IsBumper(3)==true)
+  if(ROBUS_IsBumper(3)==true)
+  {
+    while (detecteurLigne(0)==0)
+    {
+      Avancer(-1,0);
+    }
+    Avancer(-28,0);
+    delay(1000);
+
+    while (detecteurLigne(0)==0)
+    {
+      Tourner(1,5,0);
+    }
+    delay(1000);
+
+    while (detectionCouleur == 0)
+    {
+      Avancer(1,0);
+    }
+    
+    delay(1000);
+  }
+    /*if(ROBUS_IsBumper(3)==true)
     {
       Serial.print("detecteur ligne");
       float newSpeed = detecteurLigne(0.34);
@@ -62,6 +83,7 @@ void loop()
     }
 
     IR_Sensor();
+  */
 }
 /*
 ==========================
@@ -74,54 +96,14 @@ Avancer
     ENCODER_ReadReset(0);
     ENCODER_ReadReset(1); 
     unsigned int NbPulse=(3200*Distance)/(23.9389);
-    float ActualSpeed = 0.15;
-    //Serial.println(NbPulse);
-    MOTOR_SetSpeed(0, ActualSpeed);
-    MOTOR_SetSpeed(1, ActualSpeed);
-    //MOTOR_SetSpeed(0, speed);
-    //MOTOR_SetSpeed(1, speed);
+    MOTOR_SetSpeed(0, speed);
+    MOTOR_SetSpeed(1, speed);
     unsigned int PulseCount=ENCODER_Read(0);
-    long Previous_time = millis();
-    long CurrentTime = millis();
-    unsigned int TimeSample = 0;
-  
-    do
-    { 
-        //Serial.println(ActualSpeed);
-        TimeSample = CurrentTime-Previous_time;
-        //Serial.print(TimeSample);
-        //Serial.print("\t");
-        //Serial.println(ActualSpeed);
-        if (TimeSample>=150)
-        {
-          ActualSpeed=ActualSpeed*1.15;
-          MOTOR_SetSpeed(1,ActualSpeed);
-          MOTOR_SetSpeed(0, ActualSpeed);
-          Previous_time=CurrentTime;
-        }
-        CurrentTime=millis();
-        PulseCount=ENCODER_Read(0);
-    } while (ActualSpeed<speed && ENCODER_Read(0)<3000 && PulseCount<=NbPulse);
-    
-      ActualSpeed = speed;
-      
-      //Serial.print(NbPulse);
+
     while(PulseCount<=NbPulse)
     {
-      Serial.println(PulseCount);   
-      TimeSample = CurrentTime-Previous_time;
+      detecteurLigne(speed);
       PulseCount=ENCODER_Read(0);
-      if (PulseCount>=(NbPulse-2500) && (TimeSample)>=100)// 10cm = 1330 pulse
-      {
-        ActualSpeed=ActualSpeed*0.90;
-      }
-        if (TimeSample>=100)
-        {
-          MOTOR_SetSpeed(1,PID(ActualSpeed));
-          MOTOR_SetSpeed(0, ActualSpeed);
-          Previous_time=CurrentTime;
-        }
-        CurrentTime=millis();
     }
     MOTOR_SetSpeed(0, 0);
     MOTOR_SetSpeed(1, 0);
@@ -336,35 +318,35 @@ Dectecteur de ligne
 
   Serial.println(analogRead(60));
   //En fonction de détection de Blanc 
-  if (tension<0.5)//option 1(Aucun) 0.00 
+  if (tension<0.5) //option 1(Aucun) 0.00 
+  {
+    vitesseRoue=0;
+  }
+  else if(tension< 1) //option 2(X3) 0.71
   {
 
   }
-  else if(tension< 1)//option 2(X3) 0.71
+  else if(tension< 1.9) //option 3(X2) 1.51
   {
 
   }
-  else if(tension< 1.9)//option 3(X2) 1.51
+  else if(tension< 2.40) //option 4(X2,X3) 2.14
   {
 
   }
-  else if(tension< 2.40)//option 4(X2,X3) 2.14
+  else if(tension< 3) //option 5(X1) 2.85
   {
 
   }
-  else if(tension< 3)//option 5(X1) 2.85
+  else if(tension< 3.9) //option 6(X1,X3) 3.57
   {
 
   }
-  else if(tension< 3.9)//option 6(X1,X3) 3.57
+  else if(tension< 4.5) //option 7(X1,X2) 4.28
   {
 
   }
-  else if(tension< 4.5)//option 7(X1,X2) 4.28
-  {
-
-  }
-  else//option 8(X1,X2,X3) 5
+  else //option 8(X1,X2,X3) 5
   {
 
   }
