@@ -267,19 +267,19 @@ int detectionCouleur ()
   Serial.println(b);
   Serial.println(c);
  
-    if(r<110 && r>30 && g<155 && g>75 && b<205 && b>125 && c<450 && c>300 ) //trouvé valeur RGBC pour bleu
+    /*if(r<100 && r>20 && g<100 && g>20 && b>100 && c>200) //trouvé valeur RGBC pour bleu
     {
         couleur=Bleu;
-    }
-    else if(r<90 && r>10 && g<120 && g>40 && b<115 && b>35 && c<260 && c>180 ) //trouvé valeur RGBC pour vert
+    }*/
+    /*else if(r<90 && r>10 && g<120 && g>40 && b<115 && b>35 && c<260 && c>180 ) //trouvé valeur RGBC pour vert
     {
       couleur=Vert;
-    }
-    else if(r<190 && r>110 && g<105 && g>25 && b<115 && b>35 && c<350 && c>260 ) //trouvé valeur RGBC pour rouge
+    }*/
+    if(r>75 && r<180 && g<70 && g>40 && b<80 && b>40 && c>180 && c<450) //trouvé valeur RGBC pour rouge
     {
       couleur=Rouge;
     }
-    else if(r<310 && r>230 && g<255 && g>175 && b<155 && b>75 && c<680 && c>600 ) //trouvé valeur RGBC pour jaune
+    else if(r>140 && r<200 && g>110 && g<180 && b>60 && b<80 && c<600 && c>350) //trouvé valeur RGBC pour jaune
     {
       couleur=Jaune;
     }
