@@ -33,6 +33,7 @@ void setup() {
     Serial.println("test1");
     delay(5000);
     BoardInit();
+    pinMode(41,OUTPUT);
 
 
   if (tcs.begin()) {
@@ -51,6 +52,7 @@ void loop()
 {
     if(ROBUS_IsBumper(3)==true)
     {
+      Serial.print("detecteur ligne");
       float newSpeed = detecteurLigne(0.34);
     }
     if(ROBUS_IsBumper(2)==true)
@@ -267,19 +269,19 @@ int detectionCouleur ()
   Serial.println(b);
   Serial.println(c);
  
-    if(r<110 && r>30 && g<155 && g>75 && b<205 && b>125 && c<450 && c>300 ) //trouvé valeur RGBC pour bleu
+    if(r<=150 && r>=0 && g<=150 && g>=0 && b<=255 && b>=125) //trouvé valeur RGBC pour bleu
     {
         couleur=Bleu;
     }
-    else if(r<90 && r>10 && g<120 && g>40 && b<115 && b>35 && c<260 && c>180 ) //trouvé valeur RGBC pour vert
+    else if(r<=150 && r>=0 && g<=255 && g>=125 && b<=150 && b>=0) //trouvé valeur RGBC pour vert
     {
       couleur=Vert;
     }
-    else if(r<190 && r>110 && g<105 && g>25 && b<115 && b>35 && c<350 && c>260 ) //trouvé valeur RGBC pour rouge
+    else if(r<=255 && r>=125 && g<=150 && g>=0 && b<=150 && b>=0) //trouvé valeur RGBC pour rouge
     {
       couleur=Rouge;
     }
-    else if(r<310 && r>230 && g<255 && g>175 && b<155 && b>75 && c<680 && c>600 ) //trouvé valeur RGBC pour jaune
+    else if((r-g)<=50 && (g-r)<=50 && b<150 && b>=0) //trouvé valeur RGBC pour jaune
     {
       couleur=Jaune;
     }
@@ -324,9 +326,12 @@ Dectecteur de ligne
  float detecteurLigne(float TargetSpeed)
  {
   float vitesseRoue=0;
-  float tension = analogRead(82)/204.8;
+  digitalWrite(35,HIGH);
+  float tension = analogRead(A8)*5.0/1023.0;
   Serial.println(tension);
-  Serial.println(analogRead(82));
+  delay(500);
+
+  Serial.println(analogRead(60));
   //En fonction de détection de Blanc 
   if (tension<0.5)//option 1(Aucun) 0.00 
   {
