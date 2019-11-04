@@ -9,6 +9,13 @@
 #define Rouge 3
 #define Jaune 4
 
+/*
+  Couleur où se trouve le ballon
+ */
+#define Couleur Bleu
+
+
+//declaration fonction
 float PID(float TargetSpeed);
 void Avancer(float Distance,int TempsAttente);
 void Tourner(int Direction, int Rotation,int TempsAttente);
@@ -17,8 +24,8 @@ void RadiusTurn(float Radius,int angle,int Direction,int TempsAttente);
 int detectionCouleur();
 void servomoteurPrendre ();
 void servomoteurLacher ();
-float detecteurLigne(float TargetSpeed);
-float IR_Sensor();
+int detecteurLigne(float TargetSpeed);
+void TrouverBallon();
 
 //Initialisation des variables globales
 float speed=0.4;
@@ -64,26 +71,32 @@ void loop()
       Tourner(1,5,0);
     }
     delay(1000);
-
-    while (detectionCouleur == 0)
+    while (detectionCouleur() != Couleur)
+    {
+       while (detectionCouleur() == 0)
+     {
+        Avancer(1,0);
+        detecteurLigne(speed);
+      }
+      delay(1000);
+      if(detectionCouleur() != Couleur)
+      {
+        Avancer(15.23, 500);
+        Tourner(0,90,500);
+        Avancer(50, 500);//28.73+ distance roue capteur
+      }
+    }
+    TrouverBallon();
+    Rotation180(1,500);
+    while (detecteurLigne(0)!=5)
     {
       Avancer(1,0);
+      detecteurLigne(speed);
     }
-    
-    delay(1000);
-  }
-    /*if(ROBUS_IsBumper(3)==true)
-    {
-      Serial.print("detecteur ligne");
-      float newSpeed = detecteurLigne(0.34);
-    }
-    if(ROBUS_IsBumper(2)==true)
-    {
-      int couleur = detectionCouleur();
-    }
+    servomoteurLacher();
 
-    IR_Sensor();
-  */
+    //aller position pas dérengente
+  }
 }
 /*
 ==========================
@@ -102,7 +115,6 @@ Avancer
 
     while(PulseCount<=NbPulse)
     {
-      detecteurLigne(speed);
       PulseCount=ENCODER_Read(0);
     }
     MOTOR_SetSpeed(0, 0);
@@ -308,9 +320,9 @@ void servomoteurLacher ()
 Dectecteur de ligne
 ==========================
 */
- float detecteurLigne(float TargetSpeed)
+ int detecteurLigne(float TargetSpeed)
  {
-  float vitesseRoue=0;
+  int vitesseRoue=0;
   digitalWrite(35,HIGH);
   float tension = analogRead(A8)*5.0/1023.0;
   Serial.println(tension);
@@ -365,10 +377,11 @@ Dectecteur de ligne
  
  /*
  ==========================
- IR sensor
+ Trouver ballon avec IR sensor
  ==========================
-  */
- float IR_Sensor()
+*/
+
+ void TrouverBallon()
  {
 	 uint16_t distance=ROBUS_ReadIR(1);    // reads the value of the sharp sensor
 	 Serial.println(distance);            // prints the value of the sensor to the serial monitor
@@ -387,6 +400,5 @@ Dectecteur de ligne
       ==========================
       */
       void servomoteurPrendre ();
-    }
-  return;
+    }             // wait for this much time before printing next value
  }
