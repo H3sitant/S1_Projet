@@ -377,3 +377,17 @@ Dectecteur de ligne
   delay(1000);
   return vitesseRoue;
  }
+ 
+ /*
+ ==========================
+ IR sensor
+ ==========================
+  */
+ float IR_Sensor()
+ {
+	 uint16_t distance=ROBUS_ReadIR(0);    // reads the value of the sharp sensor
+	 //Serial.println(val);            // prints the value of the sensor to the serial monitor
+	 delay(200);
+   return;
+                       // wait for this much time before printing next value
+ }
