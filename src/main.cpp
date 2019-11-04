@@ -391,6 +391,20 @@ Dectecteur de ligne
 	 uint16_t distance=ROBUS_ReadIR(1);    // reads the value of the sharp sensor
 	 Serial.println(distance);            // prints the value of the sensor to the serial monitor
 	 delay(200);
-   return;
+   //return;
                        // wait for this much time before printing next value
+
+    //Les valeurs pour la longueure des rayons sont inconnue pour l'instant. Nous allons utiliser le therme: Longueur_des_rayons_IR
+  int Longeur_des_rayons_IR ;
+  int ballon_trouve ;
+  if (ballon_trouve = Longeur_des_rayons_IR)
+    {
+      /*
+      ==========================
+      Servomoteurs prendre
+      ==========================
+      */
+      void servomoteurPrendre ();
+    }
+  return;
  }
