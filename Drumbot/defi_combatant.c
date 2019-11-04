@@ -14,10 +14,6 @@ void Avancer(float Distance,int TempsAttente);
 void Tourner(int Direction, int Rotation,int TempsAttente);
 void Rotation180(int NbRot,int TempsAttente);
 void RadiusTurn(float Radius,int angle,int Direction,int TempsAttente);
-int detectionCouleur();
-void servomoteurPrendre ();
-void servomoteurLacher ();
-
 
 //Initialisation des variables globales
 float speed=0.4;
@@ -28,7 +24,7 @@ float L=18.350;
 void setup() {
   // put your setup code here, to run once:
   	Serial.begin(9600); 
-   // Serial.println("test2");
+    Serial.println("test2");
     delay(5000);
     BoardInit();
    
@@ -41,8 +37,7 @@ void loop()
 {
     if(ROBUS_IsBumper(3)==true)
     {
-        //int couleur = detectionCouleur();
-        float newSpeed = detecteurLigne(speed);
+        int couleur = detectionCouleur();
     }
 }
 /*
@@ -234,25 +229,20 @@ Boucle de controle PID
   return pid;
  }
 /*
-==========================
-Détection couleur
-==========================
+    Détection couleur
 */
 
 int detectionCouleur ()
 {
     int couleur=0;
-    uint16_t r=0;
-    uint16_t g=0;
-    uint16_t b=0;
-    uint16_t c=0;
+    uint16_t r;
+    uint16_t g;
+    uint16_t b;
+    uint16_t c;
 
-    //getRawData(&r,  &g,  &b,  &c);
+    getRawData (&r,  &g,  &b,  &c);
 
-    Serial.println(r);
-    Serial.println(g);
-    Serial.println(b);
-    Serial.println(c);
+    Serial.print("%d, %d, %d, %d",r,g,b,c);
 /* 
     if(r< && r> && g< && g> && b< && b> && c< && c> ) //trouvé valeur RGBC pour bleu
     {
@@ -275,80 +265,11 @@ int detectionCouleur ()
 }
 
 /*
-==========================
-Servomoteurs prendre
-==========================
+    Servomoteurs
  */
 
-void servomoteurPrendre ()
+int servomoteur ()
 {
-  SERVO_Enable(0);
-  SERVO_SetAngle(0, 180);
+
+    return 0;
 }
-
-/*
-==========================
-Servomoteurs lacher
-==========================
- */
-
-void servomoteurLacher ()
-{
-  SERVO_SetAngle(0, 0);
-  SERVO_Disable(0);
-}
-
-/*
-==========================
-Dectecteur de ligne
-==========================
-*/
- float detecteurLigne(float TargetSpeed)
- {
-  float vitesseRoue=0;
-  float tension = analogRead(82)/204.8;
-  Serial.print(tension);
-  //En fonction de détection de Blanc 
-  if (tension<0.5)//option 1(Aucun) 0.00 
-  {
-
-  }
-  else if(tension< 1)//option 2(X3) 0.71
-  {
-
-  }
-  else if(tension< 1.9)//option 3(X2) 1.51
-  {
-
-  }
-  else if(tension< 2.40)//option 4(X2,X3) 2.14
-  {
-
-  }
-  else if(tension< 3)//option 5(X1) 2.85
-  {
-
-  }
-  else if(tension< 3.9)//option 6(X1,X3) 3.57
-  {
-
-  }
-  else if(tension< 4.5)//option 7(X1,X2) 4.28
-  {
-
-  }
-  else//option 8(X1,X2,X3) 5
-  {
-
-  }
-
-
-  /*int encodeur_0 = ENCODER_Read(0);
-  int encodeur_1 = ENCODER_Read(1);
-  Erreur = encodeur_0 - encodeur_1;
-  //Serial.println(Erreur);
-  pid = (Erreur * Kp) + ((Erreur*Ki)/sec) + TargetSpeed;
-  //Serial.println(pid); 
-  return pid;*/
-  return vitesseRoue;
- }
