@@ -1,85 +1,66 @@
-//Jean-Claude
 #include <Arduino.h>
 #include <LibRobus.h>
+
+#include <stdlib.h>
+#include "Adafruit_TCS34725.h"
+
+#define Bleu 1
+#define Vert 2
+#define Rouge 3
+#define Jaune 4
 
 float PID(float TargetSpeed);
 void Avancer(float Distance,int TempsAttente);
 void Tourner(int Direction, int Rotation,int TempsAttente);
 void Rotation180(int NbRot,int TempsAttente);
 void RadiusTurn(float Radius,int angle,int Direction,int TempsAttente);
+int detectionCouleur();
+void servomoteurPrendre ();
+void servomoteurLacher ();
+float detecteurLigne(float TargetSpeed);
+
 
 //Initialisation des variables globales
 float speed=0.4;
 float L=18.350;
 
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
 
 void setup() {
   // put your setup code here, to run once:
   	Serial.begin(9600); 
-    Serial.println("test2");
+    Serial.println("test1");
     delay(5000);
     BoardInit();
-   
+
+
+  if (tcs.begin()) {
+    Serial.println("Found sensor");
+  } else {
+    Serial.println("No TCS34725 found ... check your connections");
+    //while (1); // halt!
+  }
+  
 }
 
-void loop() {
 /*
-Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
-*/
-
-  /*Avancer(100,2000); //Appel de la fonction pour aller tout droit
-  Rotation180(1,2000);
-  Avancer(100,2000); //Appel de la fonction pour aller tout droit
-  Rotation180(3,2000);*/
-  //RadiusTurn(25,360,0,200);
-  //delay(5000);*/
-
-  
-  //Avancer(308.4,5000); //Appel de la fonction pour aller tout droit
-
-/*/
-  RadiusTurn(25,239,0,0);
-  Avancer(87.02,0); //Appel de la fonction pour aller tout droit
-  RadiusTurn(25,239,1,0);
-  Avancer(87.02,0); //Appel de la fonction pour aller tout droit
-*/
-
-  
-  // put your main code here, to run repeatedly:
-  Avancer( 113,0); //Appel de la fonction pour aller tout droit
-  Tourner ( 1, 90,100); // Appel de la fonction pour tourner à gauche 900
-  Avancer( 72 ,100 ); //Appel de la fonction pour aller tout droit
-  Tourner (0, 90,100 ); // Appel de la fonction pour tourner à droite 900
-  Avancer(83.8,100); //Appel de la fonction pour aller tout droit
-  Tourner (0, 45,100 ); // Appel de la fonction pour tourner à droite 450
-  Avancer(171.5,100); //Appel de la fonction pour aller tout droit
-  Tourner ( 1,90,100); // Appel de la fonction pour tourner à gauche 900
-  Avancer(50,100); //Appel de la fonction pour aller tout droit
-  Tourner (0, 45,100); // Appel de la fonction pour tourner à droite 450
-  Avancer (115,100); //Appel de la fonction pour aller tout droit
-  Rotation180(1,100);
-  Avancer (115,100);
-  Tourner (1, 45,100);
-  Avancer(50,100);
-  Tourner ( 0,90,100);
-  Avancer(171.5,100);
-  Tourner (1, 45,100 );
-  Avancer(83.8,100);
-  Tourner (1, 90,100 );
-  Avancer( 72 ,100 );
-  Tourner ( 0, 90,100);
-  Avancer( 120,0);
-  Rotation180(1,100);
-  Rotation180(1,100);
-  Rotation180(1,100);
-  
-  
+    Appel des fonctions pour réaliser le parcours
+ */
+void loop() 
+{
+    if(ROBUS_IsBumper(3)==true)
+    {
+      float newSpeed = detecteurLigne(0.34);
+    }
+    if(ROBUS_IsBumper(2)==true)
+    {
+      int couleur = detectionCouleur();
+    }
 }
-
 /*
 ==========================
-
+Avancer
 ==========================
 */
 
@@ -147,7 +128,7 @@ Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
   }
 /*
 ==========================
-
+Tourner
 ==========================
 */
  void Tourner(int Direction, int Rotation,int TempsAttente)
@@ -192,7 +173,7 @@ Direction:  0 = Rotation Horraire     1 = Rotation AntiHorraire
  }
  /*
 ==========================
-
+Rotation 180
 ==========================
 */
 void Rotation180 (int NbRot, int TempsAttente)
@@ -241,42 +222,6 @@ void Rotation180 (int NbRot, int TempsAttente)
 
 }
 
-/*
-==========================
-
-==========================
-*/
-
-void RadiusTurn(float Radius,int angle,int Direction  ,int TempsAttente)
-{
-
-  ENCODER_ReadReset(0);
-  ENCODER_ReadReset(1);
-  unsigned int NbPulse=((3200*2*3.1416*Radius*angle*0.95)/(360*23.9389));
-  unsigned int PulseCount;
-  MOTOR_SetSpeed(Direction, speed);
-  if (Direction==0)
-  {
-    MOTOR_SetSpeed(1,(speed*(Radius-L)/Radius));
-  }
-  else
-  {
-    MOTOR_SetSpeed(0,(speed*(Radius-L)/Radius));
-  }
-  PulseCount=ENCODER_Read(Direction);
- // long Previous_time = millis();
-  while(PulseCount<=NbPulse)
-  {
-      PulseCount=ENCODER_Read(Direction);
-  }
-  MOTOR_SetSpeed(0, 0);
-  MOTOR_SetSpeed(1, 0);
-  ENCODER_ReadReset(0);
-  ENCODER_ReadReset(1);
-  delay(TempsAttente);
-
-}
-
  /*
 ==========================
 Boucle de controle PID
@@ -300,4 +245,130 @@ Boucle de controle PID
     pid = (Erreur * Kp) + ((Erreur*Ki)/sec) + TargetSpeed;
     //Serial.println(pid); 
   return pid;
+ }
+/*
+==========================
+Détection couleur
+==========================
+*/
+
+int detectionCouleur ()
+{
+  int couleur=0;
+  uint16_t r=0;
+  uint16_t g=0;
+  uint16_t b=0;
+  uint16_t c=0;
+
+  tcs.getRawData(&r,  &g,  &b,  &c);
+
+  Serial.println(r);
+  Serial.println(g);
+  Serial.println(b);
+  Serial.println(c);
+ 
+    if(r<110 && r>30 && g<155 && g>75 && b<205 && b>125 && c<450 && c>300 ) //trouvé valeur RGBC pour bleu
+    {
+        couleur=Bleu;
+    }
+    else if(r<90 && r>10 && g<120 && g>40 && b<115 && b>35 && c<260 && c>180 ) //trouvé valeur RGBC pour vert
+    {
+      couleur=Vert;
+    }
+    else if(r<190 && r>110 && g<105 && g>25 && b<115 && b>35 && c<350 && c>260 ) //trouvé valeur RGBC pour rouge
+    {
+      couleur=Rouge;
+    }
+    else if(r<310 && r>230 && g<255 && g>175 && b<155 && b>75 && c<680 && c>600 ) //trouvé valeur RGBC pour jaune
+    {
+      couleur=Jaune;
+    }
+    else 
+    {
+        couleur=0;
+    }
+  Serial.println(couleur);
+  delay(1000);
+  return couleur;
+}
+
+/*
+==========================
+Servomoteurs prendre
+==========================
+ */
+
+void servomoteurPrendre ()
+{
+  SERVO_Enable(0);
+  SERVO_SetAngle(0, 180);
+}
+
+/*
+==========================
+Servomoteurs lacher
+==========================
+ */
+
+void servomoteurLacher ()
+{
+  SERVO_SetAngle(0, 0);
+  SERVO_Disable(0);
+}
+
+/*
+==========================
+Dectecteur de ligne
+==========================
+*/
+ float detecteurLigne(float TargetSpeed)
+ {
+  float vitesseRoue=0;
+  float tension = analogRead(82)/204.8;
+  Serial.println(tension);
+  Serial.println(analogRead(82));
+  //En fonction de détection de Blanc 
+  if (tension<0.5)//option 1(Aucun) 0.00 
+  {
+
+  }
+  else if(tension< 1)//option 2(X3) 0.71
+  {
+
+  }
+  else if(tension< 1.9)//option 3(X2) 1.51
+  {
+
+  }
+  else if(tension< 2.40)//option 4(X2,X3) 2.14
+  {
+
+  }
+  else if(tension< 3)//option 5(X1) 2.85
+  {
+
+  }
+  else if(tension< 3.9)//option 6(X1,X3) 3.57
+  {
+
+  }
+  else if(tension< 4.5)//option 7(X1,X2) 4.28
+  {
+
+  }
+  else//option 8(X1,X2,X3) 5
+  {
+
+  }
+
+
+  /*int encodeur_0 = ENCODER_Read(0);
+  int encodeur_1 = ENCODER_Read(1);
+  Erreur = encodeur_0 - encodeur_1;
+  //Serial.println(Erreur);
+  pid = (Erreur * Kp) + ((Erreur*Ki)/sec) + TargetSpeed;
+  //Serial.println(pid); 
+  return pid;*/
+  delay(1000);
+  return vitesseRoue;
  }
