@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include<math.h>
 
 #include <stdlib.h>
 #include "Adafruit_TCS34725.h"
@@ -16,7 +17,7 @@
 /*
   Couleur où se trouve le ballon
  */
-#define Couleur Bleu
+#define Couleur Rouge
 
 
 //declaration fonction
@@ -30,9 +31,11 @@ void servomoteurPrendre ();
 void servomoteurLacher ();
 int detecteurLigne(float TargetSpeed,int type);
 void TrouverBallon();
+uint16_t Distance (uint8_t capteurId);
+void Rotation (int Angle, int TempsAttente,int cote);
 
 //Initialisation des variables globales
-float speed=0.4;
+float speed=0.2;
 float L=18.350;
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
@@ -41,7 +44,7 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS3472
 void setup() {
   // put your setup code here, to run once:
   	Serial.begin(9600); 
-    Serial.println("test1");
+    Serial.println("test2");
     delay(5000);
     BoardInit();
     pinMode(41,OUTPUT);
@@ -51,9 +54,9 @@ void setup() {
     Serial.println("Found sensor");
   } else {
     Serial.println("No TCS34725 found ... check your connections");
-    //while (1); // halt!
+    
   }
-  
+  SERVO_SetAngle(0, 150);
 }
 
 /*
@@ -68,41 +71,58 @@ Code Robot A
  */
 if(ROBUS_IsBumper(3)==true)
 {
-  delay(1000);
-  //180 pour aller vers la ligne
-  //Rotation(180,500);
-  // reculer pour trouver la ligne
-  do
-  {
-    Avancer(1,0,0.1,0);
-  }while (detecteurLigne(speed,0)== Vide);
-  MOTOR_SetSpeed(0,0);
-  MOTOR_SetSpeed(1,0);
-
+  Avancer(40,400,-speed,1);
   // Tourner pour etre parallèle a la ligne
-  Tourner(0,90,1000,1,speed);
+  Tourner(0,80,500,1,speed);
 
   //Vérifier la detection de la ligne
-  if (detecteurLigne(speed,0)!=1)
-  {
-      delay(5000);
-  }
-
-  do
+//suivre ligne
+  while(detectionCouleur()==0)
   {
     detecteurLigne(speed,1);
-  }while (detectionCouleur()==0);
-
+  }
+  MOTOR_SetSpeed(0,0);
+  MOTOR_SetSpeed(1,0);
+  // Trouver la bonne couleur
   while (detectionCouleur()!=Couleur)
   {
-    Avancer(15.23,500,speed,1);
-    Tourner(0,90,500,speed,1);
-    Avancer(50, 500,speed,1);//28.73+ distance roue capteur
-    do
+    Avancer(20,500,-speed,1);
+    Serial.println("avancer1");
+    Tourner(1,82,500,1,-speed);
+    Serial.println("tourner1");
+    Avancer(23, 500,-speed,1);//28.73+ distance roue capteur
+    Serial.println("avancer2");
+    while (detecteurLigne(speed,0)!=ligne)
     {
       detecteurLigne(speed,1);
-    }while (detectionCouleur()==0);
+    }
+    while(detectionCouleur()==0)
+    {
+      detecteurLigne(speed,1);
+    }
   }
+  
+  // prendre ballon
+  Avancer(16.5+28.7,100,-speed,1);
+  Rotation(135,500);
+  Avancer(13.5,100,speed,1);
+  servomoteurPrendre();
+  Avancer(30,100,-speed,1);
+  Rotation(180,500);
+
+  // retourner milieu
+  //while (detecteurLigne(speed,1)!=2);
+  Avancer(110,100,speed,1);
+
+ //Lacher Ballon
+  servomoteurLacher();
+  delay(1000);
+  // sortir du chemin
+  Avancer(80,100,-speed,1);
+  Rotation(1,90);
+  Avancer(80,100,-speed,1);
+
+  delay(60000);
 }
 
 
@@ -220,16 +240,17 @@ Avancer
     unsigned int NbPulse=(3200*Distance)/(23.9389);
     MOTOR_SetSpeed(0, TargetSpeed);
     MOTOR_SetSpeed(1, TargetSpeed);
-    unsigned int PulseCount=ENCODER_Read(0);
+    unsigned int PulseCount=abs(ENCODER_Read(0));
     long Previous_time = millis();
     long CurrentTime = millis();
     unsigned int TimeSample = 0;
 
    while(PulseCount<=NbPulse)
     {
-      Serial.println(PulseCount);   
       TimeSample = CurrentTime-Previous_time;
-      PulseCount=ENCODER_Read(0);
+      PulseCount = abs(ENCODER_Read(0));
+      //Serial.println(PulseCount); 
+
          if (TimeSample>=100)
         {
           MOTOR_SetSpeed(1,PID(TargetSpeed));
@@ -247,7 +268,7 @@ Avancer
   
     ENCODER_ReadReset(0);
     ENCODER_ReadReset(1);
-    Serial.println("Fin avancer");
+    //Serial.println("Fin avancer");
   }
 /*
 ==========================
@@ -274,13 +295,13 @@ Tourner
     MOTOR_SetSpeed(0,0);
   }
   MOTOR_SetSpeed(Direction, ActualSpeed);
-  unsigned int PulseCount = ENCODER_Read(Direction);
-  Serial.println(NbPulse);
+  unsigned int PulseCount = abs(ENCODER_Read(Direction));
+  //Serial.println(NbPulse);
   while(PulseCount<=NbPulse)
   {    
     MOTOR_SetSpeed(Direction,ActualSpeed);
-    PulseCount=ENCODER_Read(Direction);
-    Serial.println(PulseCount);
+    PulseCount=abs(ENCODER_Read(Direction));
+    //Serial.println(PulseCount);
   }
   if (arret==1){
   MOTOR_SetSpeed(Direction, 0);}
@@ -288,7 +309,7 @@ Tourner
   ENCODER_ReadReset(0);
   ENCODER_ReadReset(1);
   delay(TempsAttente);
-  Serial.println("Fin de Tourner");
+  //Serial.println("Fin de Tourner");
  }
  /*
 ==========================
@@ -307,7 +328,7 @@ void Rotation (int Angle, int TempsAttente)
   MOTOR_SetSpeed(0, ActualSpeed);
   MOTOR_SetSpeed(1,-ActualSpeed);
   unsigned int PulseCount=ENCODER_Read(0);
-  Serial.println(NbPulse);
+  //Serial.println(NbPulse);
   while(PulseCount<=NbPulse)
   {
        
@@ -343,6 +364,62 @@ void Rotation (int Angle, int TempsAttente)
 
 }
 
+/*
+===============
+Rotation avec coté
+=================
+ */
+void Rotation (int Angle, int TempsAttente,int cote)
+{
+  ENCODER_ReadReset(0);
+  ENCODER_ReadReset(1);
+  unsigned int NbPulse=((3200*3.14*L*Angle* 0.972)/(360*23.9389));//.972=correction robot jean-claude
+  float ActualSpeed = 0.1;
+  long Previous_time = millis();
+  long CurrentTime = millis();
+  unsigned int TimeSample = 0;
+  if(cote==1)
+  {
+    ActualSpeed=-ActualSpeed;
+  }
+  MOTOR_SetSpeed(0, ActualSpeed);
+  MOTOR_SetSpeed(1,-ActualSpeed);
+  unsigned int PulseCount=abs(ENCODER_Read(0));
+  //Serial.println(NbPulse);
+  while(PulseCount<=NbPulse)
+  {
+       
+        TimeSample = CurrentTime-Previous_time;
+        if (TimeSample>=200 && ActualSpeed<speed && PulseCount<NbPulse/2)
+        {
+          ActualSpeed=ActualSpeed*1.2;
+          MOTOR_SetSpeed(0,ActualSpeed);
+          MOTOR_SetSpeed(1,-ActualSpeed);
+          Previous_time=CurrentTime;
+          TimeSample = 0;
+        }
+        if (PulseCount>=(NbPulse/2) && TimeSample>=200 && ActualSpeed>0.15)// 10cm = 1330 pulse
+      {
+        ActualSpeed=ActualSpeed*0.75;
+        MOTOR_SetSpeed(0,ActualSpeed);
+        MOTOR_SetSpeed(1,-ActualSpeed);
+        Previous_time=CurrentTime;
+        TimeSample = 0;
+        Serial.println(ActualSpeed);
+
+      }
+        CurrentTime=millis();
+
+      PulseCount=abs(ENCODER_Read(0));
+
+  }
+  MOTOR_SetSpeed(0, 0);
+  MOTOR_SetSpeed(1, 0);
+  ENCODER_ReadReset(0);
+  ENCODER_ReadReset(1);
+  delay(TempsAttente);
+
+}
  /*
 ==========================
 Boucle de controle PID
@@ -383,24 +460,24 @@ int detectionCouleur ()
 
   tcs.getRawData(&r,  &g,  &b,  &c);
 
-  Serial.println(r);
-  Serial.println(g);
-  Serial.println(b);
-  Serial.println(c);
+  //Serial.println(r);
+  //Serial.println(g);
+  //Serial.println(b);
+  //Serial.println(c);
  
-    /*if(r<100 && r>20 && g<100 && g>20 && b>100 && c>200) //trouvé valeur RGBC pour bleu
+    if(r>15 && r<40 && g>35 && g<55 && b>30 && b<80 && c>135 && c<165) //trouvé valeur RGBC pour bleu
     {
         couleur=Bleu;
-    }*/
-    /*else if(r<90 && r>10 && g<120 && g>40 && b<115 && b>35 && c<260 && c>180 ) //trouvé valeur RGBC pour vert
+    }
+    else if(r>15 && r<40 && g>30 && g<65 && b>30 && b<65 && c>110 && c<160) //trouvé valeur RGBC pour vert
     {
       couleur=Vert;
-    }*/
-    if(r>75 && r<180 && g<70 && g>40 && b<80 && b>40 && c>180 && c<450) //trouvé valeur RGBC pour rouge
+    }
+    if(r>50 && r<80 && g>30 && g<50 && b>35 && b<55 && c>140 && c<180) //trouvé valeur RGBC pour rouge
     {
       couleur=Rouge;
     }
-    else if(r>140 && r<200 && g>110 && g<180 && b>60 && b<80 && c<600 && c>350) //trouvé valeur RGBC pour jaune
+    else if(r>100 && r<160 && g>90 && g<140 && b>50 && b<80 && c>280 && c<380) //trouvé valeur RGBC pour jaune
     {
       couleur=Jaune;
     }
@@ -408,8 +485,7 @@ int detectionCouleur ()
     {
         couleur=0;
     }
-  Serial.println(couleur);
-  delay(1000);
+  //Serial.println(couleur);
   return couleur;
 }
 
@@ -422,8 +498,9 @@ Servomoteurs prendre
 void servomoteurPrendre ()
 {
    SERVO_Enable(0);
-  SERVO_SetAngle(0, 20);
-  SERVO_Enable(0);
+  SERVO_SetAngle(0, 30);
+  delay(1000);
+  SERVO_Disable(0);
 }
 
 /*
@@ -448,7 +525,7 @@ Dectecteur de ligne
  {
   int Detect=0;
   float tension = analogRead(A8)*5.0/1023.0;
-  Serial.println(tension);
+  //Serial.println(tension);
 
  
 
@@ -458,15 +535,15 @@ Dectecteur de ligne
   {
     Detect=Millieux;
   }
-  else if(tension < 1) //option 2(X3) 0.71
+  else if(tension < 1 && tension >0.5) //option 2(X3) 0.71
   {
     Detect=ligne;
   }
-  else if(tension< 1.9) //option 3(X2) 1.51
+  else if(tension< 1.9 && tension > 1) //option 3(X2) 1.51
   {
     Detect=ligne;
   }
-  else if(tension< 2.40) //option 4(X2,X3) 2.14
+  else if(tension< 2.40 && tension > 1.9)  //option 4(X2,X3) 2.14
   {
     if (type==1)
     {
@@ -476,16 +553,16 @@ Dectecteur de ligne
     }
     Detect=ligne;
   }
-  else if(tension< 3) //option 5(X1) 2.85
+  else if(tension< 3 && tension > 2.40) //option 5(X1) 2.85
   {
     Detect=ligne;
   }
-  else if(tension< 3.9) //option 6(X1,X3) 3.57
+  else if(tension< 3.9 && tension > 3) //option 6(X1,X3) 3.57
   {
    
    Detect=ligne;
   }
-  else if(tension< 4.5) //option 7(X1,X2) 4.28
+  else if(tension< 4.5 && tension >3.9) //option 7(X1,X2) 4.28
   {
     if (type==1)
     {
@@ -497,13 +574,15 @@ Dectecteur de ligne
   }
   else //option 8(X1,X2,X3) 5
   {
-    Detect=Vide;   
+    Detect=Vide;
   }
     Avancer(0.25,0,-TargetSpeed,0);
 
   
   return Detect;
  }
+
+
  
  /*
  ==========================
@@ -511,24 +590,37 @@ Dectecteur de ligne
  ==========================
 */
 
- void TrouverBallon()
- {
-	 uint16_t distance=ROBUS_ReadIR(1);    // reads the value of the sharp sensor
-	 Serial.println(distance);            // prints the value of the sensor to the serial monitor
-	 delay(200);
-   //return;
-                       // wait for this much time before printing next value
+void TrouverBallon()
+{
+  uint16_t distance = 40;
+  int angle = 0;
 
-    //Les valeurs pour la longueure des rayons sont inconnue pour l'instant. Nous allons utiliser le therme: Longueur_des_rayons_IR
-  int Longeur_des_rayons_IR =0;
-  int ballon_trouve ;
-  if (ballon_trouve == Longeur_des_rayons_IR)
+  for(int i=0;i<=14;i++)
+  {
+    Rotation(5,0,1);
+      if (distance>=Distance(1))
+      {
+        distance=Distance(1);
+        angle=70-i*5;
+      }
+      Serial.println(distance);
+      Serial.println(angle);
+  }
+
+  Rotation(angle,0,0);
+  Avancer(distance,300,speed,1);
+  servomoteurPrendre ();
+  //Rotation(180,0);
+  //Avancer(35,500,0.3,1);
+}
+
+uint16_t Distance (uint8_t capteurId)
+{
+    int16_t TensionIR = ROBUS_ReadIR(capteurId);
+    if (TensionIR != 0)
     {
-      /*
-      ==========================
-      Servomoteurs prendre
-      ==========================
-      */
-      void servomoteurPrendre ();
-    }             // wait for this much time before printing next value
- }
+      int distance = (6787 / (TensionIR - 3)) -4;
+      return distance;
+    }
+    return 0;
+}
