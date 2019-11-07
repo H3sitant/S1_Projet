@@ -17,7 +17,7 @@
 /*
   Couleur où se trouve le ballon
  */
-#define Couleur Rouge
+#define Couleur Jaune
 
 
 //declaration fonction
@@ -46,7 +46,7 @@ void setup()
   // put your setup code here, to run once:
   	Serial.begin(9600); 
     Serial.println("test2");
-    delay(5000);
+    delay(1000);
     BoardInit();
     pinMode(41,OUTPUT);
 
@@ -57,7 +57,7 @@ void setup()
     Serial.println("No TCS34725 found ... check your connections");
     
   }
-  SERVO_SetAngle(0, 150);
+  SERVO_SetAngle(1, 150);
 }
 
 /*
@@ -70,9 +70,15 @@ void loop()
 Code Robot A
 ======================
  */
+if(ROBUS_IsBumper(2)==true)
+{
+  servomoteurPrendre();
+  delay(1000);
+  servomoteurLacher();
+}
 if(ROBUS_IsBumper(3)==true)
 {
-  
+
   Avancer(40,400,-speed,1);
   // Tourner pour etre parallèle a la ligne
   if(Couleur==Bleu||Couleur==Vert)
@@ -92,7 +98,7 @@ if(ROBUS_IsBumper(3)==true)
   while (detectionCouleur()!=Couleur)
   {
     Avancer(20,500,-speed,1);
-    Serial.println("avancer1");
+   // Serial.println("avancer1");
     if(Couleur==Bleu||Couleur==Vert)
     {
     Tourner(0,82,500,1,-speed);
@@ -100,12 +106,12 @@ if(ROBUS_IsBumper(3)==true)
       Tourner(1,82,500,1,-speed);
     }
     
-    Serial.println("tourner1");
-    Avancer(19, 500,-speed,1);//28.73+ distance roue capteur
-    Serial.println("avancer2");
+    //Serial.println("tourner1");
+    Avancer(15, 500,-speed,1);//28.73+ distance roue capteur
+   // Serial.println("avancer2");
     while (detecteurLigne(speed,0)!=ligne)
     {
-      detecteurLigne(speed,1);
+      Avancer(0.25,0,-speed,0);
     }
     while(detectionCouleur()==0)
     {
@@ -130,23 +136,54 @@ if(ROBUS_IsBumper(3)==true)
     }else{
       Rotation1(90,500,0);
     }
+    TrouverBallon();
+
   
-  Avancer(40,100,speed,1);
-  servomoteurPrendre();
-  Avancer(40,100,-speed,1);
-  Rotation1(180,500,0);
 
   // retourner milieu
-  //while (detecteurLigne(speed,1)!=2);
-  Avancer(50,100,speed,1);
+
+  if(Couleur==Rouge || Couleur==Vert)
+  {
+    Avancer(25,100,-speed,1);
+    if(Couleur==Rouge)
+    {
+      Rotation1(139,500,1);
+      Avancer(48,500,speed,1);
+      Tourner(1,90,500,0,speed);
+    }
+    else
+    {
+      Rotation1(139,500,0);
+      Avancer(48,500,speed,1);
+      Tourner(0,90,500,1,speed);
+    }
+    Avancer(45,500,speed,1);
+  
+  }else{
+
+    Avancer(15,100,-speed,1);
+    Rotation1(180,100,0);
+    Avancer(85,100,0.4,1);
+  }
+
+  
 
  //Lacher Ballon
   servomoteurLacher();
   delay(1000);
   // sortir du chemin
-  Avancer(80,100,-speed,1);
+
+    if(Couleur==Rouge || Couleur==Vert)
+  {
+    
+    Avancer(100,500,-speed,1);
+  
+  }else{
+
+      Avancer(30,100,-0.4,1);
   Rotation(45,90);
-  Avancer(80,100,-speed,1);
+  Avancer(80,100,-0.4,1);
+  }
 
   delay(60000);
 }
@@ -491,15 +528,15 @@ int detectionCouleur ()
   //Serial.println(b);
   //Serial.println(c);
  
-    if(r>15 && r<40 && g>35 && g<55 && b>30 && b<80 && c>135 && c<165) //trouvé valeur RGBC pour bleu
+    if(r>20 && r<35 && g>40 && g<50 && b>55 && b<75 && c>135 && c<145) //trouvé valeur RGBC pour bleu
     {
         couleur=Bleu;
     }
-    else if(r>15 && r<40 && g>30 && g<65 && b>30 && b<65 && c>110 && c<160) //trouvé valeur RGBC pour vert
+    else if(r>20 && r<35 && g>40 && g<60 && b>35 && b<=55 && c>120 && c<150) //trouvé valeur RGBC pour vert
     {
       couleur=Vert;
     }
-    if(r>50 && r<80 && g>30 && g<50 && b>35 && b<55 && c>140 && c<180) //trouvé valeur RGBC pour rouge
+    else if(r>50 && r<80 && g>30 && g<50 && b>35 && b<55 && c>140 && c<180) //trouvé valeur RGBC pour rouge
     {
       couleur=Rouge;
     }
@@ -523,10 +560,10 @@ Servomoteurs prendre
 
 void servomoteurPrendre ()
 {
-   SERVO_Enable(0);
-  SERVO_SetAngle(0, 30);
-  delay(1000);
-  SERVO_Disable(0);
+  SERVO_Enable(1);
+  SERVO_SetAngle(1,30);
+  delay(2000);
+  SERVO_Disable(1);
 }
 
 /*
@@ -537,10 +574,10 @@ Servomoteurs lacher
 
 void servomoteurLacher ()
 {
-  SERVO_Enable(0);
-  SERVO_SetAngle(0, 150);
+  SERVO_Enable(1);
+  SERVO_SetAngle(1, 150);
   delay(2000);
-  SERVO_Disable(0);
+  SERVO_Disable(1);
 }
 
 /*
@@ -619,19 +656,30 @@ Dectecteur de ligne
 
 void TrouverBallon()
 {
-  uint16_t distance = 40;
-  int angle = 0;
+  uint16_t distance = 3000;
+  int angle = 25;
 
-  for(int i=0;i<=14;i++)
+  for(int i=0;i<=5;i++)
+    {
+      Rotation1(5,0,0);
+        if (distance>=Distance(1))
+        {
+          distance=Distance(1);
+          angle=25+5*(i+1);
+        }
+      Serial.println(distance);
+      Serial.println(angle);
+    }
+  for(int i=0;i<=10;i++)
   {
     Rotation1(5,0,1);
       if (distance>=Distance(1))
       {
         distance=Distance(1);
-        angle=70-i*5;
+        angle=55-(i+1)*5;
       }
-      Serial.println(distance);
-      Serial.println(angle);
+    Serial.println(distance);
+    Serial.println(angle);
   }
 
   Rotation1(angle,0,0);
