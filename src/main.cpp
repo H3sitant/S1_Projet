@@ -32,7 +32,7 @@ void servomoteurLacher ();
 int detecteurLigne(float TargetSpeed,int type);
 void TrouverBallon();
 uint16_t Distance (uint8_t capteurId);
-void Rotation (int Angle, int TempsAttente,int cote);
+void Rotation1 (int Angle, int TempsAttente,int cote);
 
 //Initialisation des variables globales
 float speed=0.2;
@@ -41,7 +41,8 @@ float L=18.350;
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
 
-void setup() {
+void setup() 
+{
   // put your setup code here, to run once:
   	Serial.begin(9600); 
     Serial.println("test2");
@@ -71,11 +72,15 @@ Code Robot A
  */
 if(ROBUS_IsBumper(3)==true)
 {
+  
   Avancer(40,400,-speed,1);
   // Tourner pour etre parallèle a la ligne
-  Tourner(0,80,500,1,speed);
-
-  //Vérifier la detection de la ligne
+  if(Couleur==Bleu||Couleur==Vert)
+  {
+    Tourner(1,80,500,1,speed);
+  }else{
+    Tourner(0,80,500,1,speed);
+  }
 //suivre ligne
   while(detectionCouleur()==0)
   {
@@ -88,9 +93,15 @@ if(ROBUS_IsBumper(3)==true)
   {
     Avancer(20,500,-speed,1);
     Serial.println("avancer1");
-    Tourner(1,82,500,1,-speed);
+    if(Couleur==Bleu||Couleur==Vert)
+    {
+    Tourner(0,82,500,1,-speed);
+    }else{
+      Tourner(1,82,500,1,-speed);
+    }
+    
     Serial.println("tourner1");
-    Avancer(23, 500,-speed,1);//28.73+ distance roue capteur
+    Avancer(19, 500,-speed,1);//28.73+ distance roue capteur
     Serial.println("avancer2");
     while (detecteurLigne(speed,0)!=ligne)
     {
@@ -103,23 +114,38 @@ if(ROBUS_IsBumper(3)==true)
   }
   
   // prendre ballon
-  Avancer(16.5+28.7,100,-speed,1);
-  Rotation(135,500);
-  Avancer(13.5,100,speed,1);
+  Avancer(16.5,100,-speed,1);
+  if(Couleur==Bleu||Couleur==Vert)
+    {
+      Tourner(1,45,250,1,speed);
+    }else{
+      Tourner(0,45,250,1,speed);
+    }
+  
+  Avancer(20.32,100,-speed,1);
+
+  if(Couleur==Bleu||Couleur==Vert)
+    {
+      Rotation1(90,500,1);
+    }else{
+      Rotation1(90,500,0);
+    }
+  
+  Avancer(40,100,speed,1);
   servomoteurPrendre();
-  Avancer(30,100,-speed,1);
-  Rotation(180,500);
+  Avancer(40,100,-speed,1);
+  Rotation1(180,500,0);
 
   // retourner milieu
   //while (detecteurLigne(speed,1)!=2);
-  Avancer(110,100,speed,1);
+  Avancer(50,100,speed,1);
 
  //Lacher Ballon
   servomoteurLacher();
   delay(1000);
   // sortir du chemin
   Avancer(80,100,-speed,1);
-  Rotation(1,90);
+  Rotation(45,90);
   Avancer(80,100,-speed,1);
 
   delay(60000);
@@ -369,7 +395,7 @@ void Rotation (int Angle, int TempsAttente)
 Rotation avec coté
 =================
  */
-void Rotation (int Angle, int TempsAttente,int cote)
+void Rotation1 (int Angle, int TempsAttente,int cote)
 {
   ENCODER_ReadReset(0);
   ENCODER_ReadReset(1);
@@ -513,6 +539,7 @@ void servomoteurLacher ()
 {
   SERVO_Enable(0);
   SERVO_SetAngle(0, 150);
+  delay(2000);
   SERVO_Disable(0);
 }
 
@@ -597,7 +624,7 @@ void TrouverBallon()
 
   for(int i=0;i<=14;i++)
   {
-    Rotation(5,0,1);
+    Rotation1(5,0,1);
       if (distance>=Distance(1))
       {
         distance=Distance(1);
@@ -607,7 +634,7 @@ void TrouverBallon()
       Serial.println(angle);
   }
 
-  Rotation(angle,0,0);
+  Rotation1(angle,0,0);
   Avancer(distance,300,speed,1);
   servomoteurPrendre ();
   //Rotation(180,0);
