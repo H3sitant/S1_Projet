@@ -41,6 +41,9 @@ int partition_2[16];
 int partition_3[16];
 unsigned int start_time;
 
+#define instrument1 40
+#define instrument2 30
+
 #define reussie 1
 #define mauvaise_note 2
 #define manquer 3
@@ -80,12 +83,20 @@ void loop()
       incomingByte = Serial1.read();
 
       // say what you got:
-      if(incomingByte==40)
+      if(incomingByte==instrument1 || incomingByte==instrument2)
       {
         Serial.print("I received: ");
         Serial.println(incomingByte, DEC);
         Serial.println(millis()-start_time);
-        int retour=comparaison_midi(40,millis()-start_time);
+        int retour;
+        if (incomingByte==instrument1)
+        {
+          retour=comparaison_midi(instrument1,millis()-start_time);
+        }else
+        {
+          retour=comparaison_midi(instrument2,millis()-start_time);
+        }
+        
         if (retour==Erreur)
         {
           Serial.println("ERREUR DIMENTION");
