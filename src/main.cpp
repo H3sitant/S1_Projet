@@ -1,13 +1,7 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 #include<math.h>
-
-#include <stdlib.h>
 #include "Adafruit_TCS34725.h"
-
-#include "partition_1.txt"
-#include "partition_2.txt"
-#include "partition_3.txt"
 
 #define Bleu 1
 #define Vert 2
@@ -39,9 +33,18 @@ int detecteurLigne(float TargetSpeed,int type);
 void TrouverBallon();
 uint16_t Distance (uint8_t capteurId);
 void Rotation1 (int Angle, int TempsAttente,int cote);
+int comparaison_midi(int instrument, int temps);
 
 //traitement midi
-int traitement_fichier (FILE* partition);
+int partition_1[16];
+int partition_2[16];
+int partition_3[16];
+unsigned int start_time;
+
+#define reussie 1
+#define mauvaise_note 2
+#define manquer 3
+#define Erreur 0
 
 //Initialisation des variables globales
 float speed=0.2;
@@ -60,6 +63,7 @@ void setup()
     Serial.println(Serial1.read()); 
     delay(1000);
     BoardInit();
+    start_time = millis();
 }
 
 /*
@@ -67,45 +71,72 @@ void setup()
  */
 void loop() 
 {
-  FILE* partition = fopen("parition_1.txt","r");
   //traitement_fichier(partition);
-  fclose(partition);
-  /*unsigned int start_time = millis();
-  Serial.println(millis()-start_time);
-  delay(5000);
-  Serial.println(millis()-start_time);
-  */
-  /*if (Serial1.available() > 0)
+  if (millis()-start_time<=16.125)
   {
-    // read the incoming byte:
-    incomingByte = Serial1.read();
-
-    // say what you got:
-    if(incomingByte==40)
+    if (Serial1.available() > 0)
     {
-      Serial.print("I received: ");
-      Serial.println(incomingByte, DEC);
-      
+      // read the incoming byte:
+      incomingByte = Serial1.read();
+
+      // say what you got:
+      if(incomingByte==40)
+      {
+        Serial.print("I received: ");
+        Serial.println(incomingByte, DEC);
+        Serial.println(millis()-start_time);
+        int retour=comparaison_midi(40,millis()-start_time);
+        if (retour==Erreur)
+        {
+          Serial.println("ERREUR DIMENTION");
+        }else if(retour==manquer) // coups pas sur une note
+        {
+          //Alumer lumière rouge
+        }else if(retour==mauvaise_note) // mauvaise note
+        {
+          //Alumer lumière Jaune
+        }else //coups réussie
+        {
+          //Alumer lumière Verte
+        }
+      }
     }
-  }*/
-  
+  } 
 }
 
 /*
 ====================================
-TRAITEMENT DES COUPS
+Comparaison midi
 ====================================
  */
-/*int traitement_fichier (FILE* partition)
+int comparaison_midi (int instrument, int temps)
 {
-  int tempo[20];
-  int instrument[20];
-  int i=0;
-  while(fgetc(partition)!=EOF)
+  //trouver le reste pour pouvoir identifier la position du coups dans le temps
+  int positionT = temps % 250;
+  if (positionT<=125)
   {
-    fscanf(partition, "%d  %d", &tempo[i], &instrument[i]);
-    i++;
-    Serial.print(i);
+    positionT= (temps-positionT)/250; //temps du coups arondi a la baisse
+  }else
+  {
+    positionT= (temps-positionT)/250+1;//temps du coups aroudi a la hausse
   }
-  return 1;
-}*/
+  //vérifier si les dimention son bonne
+  if (positionT>=16)
+  {
+    return 0;
+  }
+  else// comparaison du coups avec le fichier midi
+  {
+    if(partition_1[positionT]==0)// pas de coups a se moment
+    {
+      return manquer;
+    }else if(partition_1[positionT]==instrument)// il ya un coups a se moment et ces le bon instrument
+    {
+      return reussie;
+    }else //il a un coups a se moment mais ce n'est pas le bon instrument
+    {
+      return mauvaise_note;
+    }
+  }
+  
+}
