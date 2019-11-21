@@ -59,9 +59,6 @@ int partition_D[2][70] =  {//difficile
                           };
 //temps
 unsigned int start_time;
-//instrument
-#define instrument1 40
-#define instrument2 33
 //difficulté
 #define facile 1
 #define moyen 2
@@ -70,8 +67,9 @@ unsigned int start_time;
 #define reussie 1
 #define mauvaise_note 2
 #define manquer 3
-#define Erreur 0
+#define Erreur 401
 
+int i=0;
 /*
 =====================
 
@@ -103,52 +101,54 @@ void setup()
     Appel des fonctions pour réaliser le parcours
  */
 void loop() 
-{
-
-  /*
-  choix de partition avec bouton
-  */
-  /*digitalWrite(22,HIGH);
-  delay(500);
-  digitalWrite(22,LOW);
-  digitalWrite(23,HIGH);
-  delay(500);
-  digitalWrite(23,LOW);
-  digitalWrite(24,HIGH);
-  delay(500);
-  digitalWrite(24,LOW);*/
-  if (Serial1.available() > 0)
-    {
-      // read the incoming byte:
-      incomingByte = Serial1.read();
-      // say what you got:
-      //Serial.print("I received: ");
-      //Serial.println(incomingByte, DEC);   
-      if(incomingByte==instrument1 || incomingByte==instrument2)
-      { 
+{ 
+  int ana =analogRead(A4);
+  
+  
+  
+  /*if(ana>30)
+  {
+    Serial.println(i);
+    digitalWrite(23,HIGH);
+    delay(15);
+    digitalWrite(23,LOW);
+    delay(25);
+    i++;
+  }*/
+   if(ana>30)
+  {
+    for (int i=0;i<=50; i++)
+      {
+        digitalWrite(22,HIGH);
+        delay(15);
+        digitalWrite(22,LOW);
+        delay(25);
         digitalWrite(23,HIGH);
         delay(15);
         digitalWrite(23,LOW);
-        //Serial.print("I                                   received:                                                      ");
-        //Serial.println(incomingByte, DEC);   
+        delay(25);
+        digitalWrite(24,HIGH);
+        delay(15);
+        digitalWrite(24,LOW);
+        delay(25);
       }
-    }
-    if(ROBUS_IsBumper(1)==true)
-    {
-      delay(500);
-      Serial2.write(33);  
-    }
-  /*int partition_C[2][70];
+  }
+  /*
+  choix de partition avec bouton
+  */
+  int partition_C[2][70];
   if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
   {
     choix_partition ( partition_C, partition_F);
-    start_time = millis();
     int retour= music( partition_C);
     if (retour==Erreur)
     {
-      Serial.println("ERREUR DIMENTION");
+      Serial.println("ERREUR Temps");
       delay(10000);//stall
-    } 
+    }else
+    {
+      Serial.println(retour);
+    }
     Serial.println("FIN");
   }
   if(ROBUS_IsBumper(1)==true)//choisir partition Moyenne : changer pour Bouton Vert
@@ -160,7 +160,10 @@ void loop()
     {
       Serial.println("ERREUR DIMENTION");
       delay(10000);//stall
-    } 
+    }else
+    {
+      Serial.println(retour);
+    }
     Serial.println("FIN");
   }
   if(ROBUS_IsBumper(2)==true)//choisir partition Difficile : changer pour Bouton Vert
@@ -170,11 +173,49 @@ void loop()
     int retour= music( partition_C);
     if (retour==Erreur)
     {
-      Serial.println("ERREUR DIMENTION");
+      Serial.println("ERREUR Temps");
       delay(10000);//stall
-    } 
+    }else if (retour==100)
+    {
+      Serial.println( "resultat: PARFAIT");
+      for (int i=0;i<=50; i++)
+      {
+        digitalWrite(22,HIGH);
+        delay(15);
+        digitalWrite(22,LOW);
+        delay(25);
+        digitalWrite(23,HIGH);
+        delay(15);
+        digitalWrite(23,LOW);
+        delay(25);
+        digitalWrite(24,HIGH);
+        delay(15);
+        digitalWrite(24,LOW);
+        delay(25);
+      }
+    }
+    else if (retour>75)
+    {
+      Serial.println( "resultat: BON");
+      digitalWrite(24,HIGH);
+      delay(5000);
+      digitalWrite(24,LOW);
+    }
+    else if (retour>0)
+    {
+      Serial.println( "resultat: MOYEN");
+      digitalWrite(23,HIGH);
+      delay(5000);
+      digitalWrite(23,LOW);
+    }else 
+    {
+      Serial.println( "resultat: OUCH");
+      digitalWrite(22,HIGH);
+      delay(5000);
+      digitalWrite(22,LOW);
+    }
     Serial.println("FIN");
-  }*/
+  }
 }
 
 /*
@@ -184,61 +225,50 @@ Fonction coups
 */
 int music( int partition_C[2][70])
 {
-  /*for (int i=0; i<2; i++)
-    {
-      for (int j=0; j<70; j++)
-      {
-        Serial.print(partition_C[i][j]);
-        Serial.print(", ");
-      }
-      Serial.println();
-    }Affichage partition*/
-    int Temps_I=millis();
-    int note=100;
-   while (millis()-Temps_I<=16125)
+  int Temps_I=millis();
+  int note=100;
+  while (millis()-Temps_I<=16125)
   {
-    Serial.println("Allo1");
-    if (Serial1.available() > 0)
+    int Entre1 =analogRead(A4);
+    int Entre2 =analogRead(A5);
+    if( Entre1>30 ) //|| Entre2
     {
-      Serial.println("Allo2");
-      // read the incoming byte:
-      incomingByte = Serial1.read();
-      // say what you got:
-      if(incomingByte==instrument1 || incomingByte==instrument2)
+      
+      int retour;
+      if (Entre1>30)
       {
-        Serial.print("I received: ");
-        Serial.println(incomingByte, DEC);
-        Serial.println(millis()-Temps_I);
-        int retour;
-        if (incomingByte==instrument1)
-        {
-          retour=comparaison_midi(instrument1,millis()-Temps_I, partition_C);
-        }else
-        {
-          retour=comparaison_midi(instrument2,millis()-Temps_I, partition_C);
-        }
-        
-        if (retour==Erreur)
-        {
-          return Erreur;
-        }else if(retour==manquer) // coups pas sur une note
-        {
-          digitalWrite(22,HIGH);
-          delay(500);
-          digitalWrite(22,LOW);
-          note-=4;
-        }else if(retour==mauvaise_note) // mauvaise note
-        {
-          digitalWrite(23,HIGH);
-          delay(500);
-           digitalWrite(23,LOW);
-           note-=2;
-        }else //coups réussie
-        {
-          digitalWrite(24,HIGH);
-          delay(500);
-          digitalWrite(23,LOW);
-        }
+        retour=comparaison_midi(0,millis()-Temps_I, partition_C);
+      }else
+      {
+        retour=comparaison_midi(1,millis()-Temps_I, partition_C);
+      }
+
+      if (retour==Erreur)
+      {
+        return Erreur;
+      }else if(retour==manquer) // coups pas sur une note
+      {
+        digitalWrite(22,HIGH);
+        delay(40);
+        digitalWrite(22,LOW);
+        note-=4;
+        Serial.println("I received: manquer");
+      }else if(retour==mauvaise_note) // mauvaise note
+      {
+        digitalWrite(23,HIGH);
+        delay(40);
+        digitalWrite(23,LOW);
+        note-=2;
+        Serial.println("I received: mauvaise note");
+      }else if(retour == reussie)//coups réussie
+      {
+        digitalWrite(24,HIGH);
+        delay(40);
+        digitalWrite(23,LOW);
+        Serial.println("I received: Reussi");
+      }else
+      {
+        Serial.println("I received: Impossible");
       }
     }
   } 
@@ -252,14 +282,6 @@ Comparaison midi
  */
 int comparaison_midi (int instrument, int temps, int partition_C[2][70])
 {
-  //trouver l'instrument
-  if(instrument==instrument1)
-  {
-    instrument=0; //position dans tableau
-  }else
-  {
-    instrument=1;//position dans tableau
-  }
 
   //trouver le reste pour pouvoir identifier la position du coups dans le temps
   int positionT = temps % 250;
@@ -272,22 +294,27 @@ int comparaison_midi (int instrument, int temps, int partition_C[2][70])
     positionT= (temps-positionT)/250+1;//temps du coups aroudi a la hausse
   }
   //vérifier si les dimention son bonne
-  if (positionT>=64)
+  if (positionT>=70)
   {
-    return 0;
+    return Erreur;
   }
   else// comparaison du coups avec le fichier midi
   {
-    if(partition_C[positionT][0]==0 && partition_F[positionT][1]==0)// pas de coups a se moment
+
+    if(partition_C[0][positionT]==0 && partition_C[1][positionT]==0)// pas de coups a se moment
     {
       return manquer;
-    }else if( partition_C[positionT][instrument]==1)// il ya un coups a se moment et ces le bon instrument
+    }else if( partition_C[instrument][positionT]==1)// il ya un coups a se moment et ces le bon instrument
     {
       return reussie;
-    }else //il a un coups a se moment mais ce n'est pas le bon instrument
+    }else if( partition_C[abs(instrument-1)][positionT]==1)//il a un coups a se moment mais ce n'est pas le bon instrument
     {
       return mauvaise_note;
+    }else
+    {
+      return 4;
     }
+    
   } 
 }
 
