@@ -89,9 +89,8 @@ void setup()
   // put your setup code here, to run once:
   	Serial.begin(9600); 
     Serial1.begin(31250); 
+    Serial2.begin(31250); 
     Serial.println("test2");
-    Serial.println(Serial1.available());
-    Serial.println(Serial1.read()); 
     delay(1000);
     BoardInit();
     start_time = millis();
@@ -126,16 +125,21 @@ void loop()
       //Serial.print("I received: ");
       //Serial.println(incomingByte, DEC);   
       if(incomingByte==instrument1 || incomingByte==instrument2)
-      {
-        Serial.print("I                                   received:                                                      ");
-        Serial.println(incomingByte, DEC);   
+      { 
         digitalWrite(23,HIGH);
         delay(15);
         digitalWrite(23,LOW);
+        //Serial.print("I                                   received:                                                      ");
+        //Serial.println(incomingByte, DEC);   
       }
     }
-  int partition_C[2][70];
-  /*if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
+    if(ROBUS_IsBumper(1)==true)
+    {
+      delay(500);
+      Serial2.write(33);  
+    }
+  /*int partition_C[2][70];
+  if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
   {
     choix_partition ( partition_C, partition_F);
     start_time = millis();
@@ -190,6 +194,7 @@ int music( int partition_C[2][70])
       Serial.println();
     }Affichage partition*/
     int Temps_I=millis();
+    int note=100;
    while (millis()-Temps_I<=16125)
   {
     Serial.println("Allo1");
@@ -221,11 +226,13 @@ int music( int partition_C[2][70])
           digitalWrite(22,HIGH);
           delay(500);
           digitalWrite(22,LOW);
+          note-=4;
         }else if(retour==mauvaise_note) // mauvaise note
         {
           digitalWrite(23,HIGH);
           delay(500);
            digitalWrite(23,LOW);
+           note-=2;
         }else //coups réussie
         {
           digitalWrite(24,HIGH);
@@ -235,7 +242,7 @@ int music( int partition_C[2][70])
       }
     }
   } 
-  return reussie;
+  return note;
 }
 
 /*
