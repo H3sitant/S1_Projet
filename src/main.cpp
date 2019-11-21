@@ -33,8 +33,11 @@ int detecteurLigne(float TargetSpeed,int type);
 void TrouverBallon();
 uint16_t Distance (uint8_t capteurId);
 void Rotation1 (int Angle, int TempsAttente,int cote);
+
+//traitement midi
 int comparaison_midi(int instrument, int temps, int partition_C[2][70]);
 void choix_partition (int partition_C[2][70], int partition_I[2][70]);
+int music( int partition_C[2][70]);
 
 /*
 ====================
@@ -58,8 +61,8 @@ int partition_D[2][70] =  {//difficile
 unsigned int start_time;
 //instrument
 #define instrument1 40
-#define instrument2 30
-//dificulté
+#define instrument2 33
+//difficulté
 #define facile 1
 #define moyen 2
 #define Difficile 3
@@ -92,6 +95,9 @@ void setup()
     delay(1000);
     BoardInit();
     start_time = millis();
+    pinMode(22,OUTPUT);
+    pinMode(23,OUTPUT);
+    pinMode(24,OUTPUT);
 }
 
 /*
@@ -103,47 +109,133 @@ void loop()
   /*
   choix de partition avec bouton
   */
-  int partition_C[2][70];
-  //choix_partition ( *partition_C[2][70], partition_I[2][70]);
-  //traitement_fichier(partition);
-  if (millis()-start_time<=16.125)
-  {
-    if (Serial1.available() > 0)
+  /*digitalWrite(22,HIGH);
+  delay(500);
+  digitalWrite(22,LOW);
+  digitalWrite(23,HIGH);
+  delay(500);
+  digitalWrite(23,LOW);
+  digitalWrite(24,HIGH);
+  delay(500);
+  digitalWrite(24,LOW);*/
+  if (Serial1.available() > 0)
     {
       // read the incoming byte:
       incomingByte = Serial1.read();
+      // say what you got:
+      //Serial.print("I received: ");
+      //Serial.println(incomingByte, DEC);   
+      if(incomingByte==instrument1 || incomingByte==instrument2)
+      {
+        Serial.print("I                                   received:                                                      ");
+        Serial.println(incomingByte, DEC);   
+        digitalWrite(23,HIGH);
+        delay(15);
+        digitalWrite(23,LOW);
+      }
+    }
+  int partition_C[2][70];
+  /*if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
+  {
+    choix_partition ( partition_C, partition_F);
+    start_time = millis();
+    int retour= music( partition_C);
+    if (retour==Erreur)
+    {
+      Serial.println("ERREUR DIMENTION");
+      delay(10000);//stall
+    } 
+    Serial.println("FIN");
+  }
+  if(ROBUS_IsBumper(1)==true)//choisir partition Moyenne : changer pour Bouton Vert
+  {
+    choix_partition ( partition_C, partition_M);
+    Serial.println("Moyen");
+    int retour= music( partition_C);
+    if (retour==Erreur)
+    {
+      Serial.println("ERREUR DIMENTION");
+      delay(10000);//stall
+    } 
+    Serial.println("FIN");
+  }
+  if(ROBUS_IsBumper(2)==true)//choisir partition Difficile : changer pour Bouton Vert
+  {
+    choix_partition ( partition_C, partition_D);
+    Serial.println("Difficile");
+    int retour= music( partition_C);
+    if (retour==Erreur)
+    {
+      Serial.println("ERREUR DIMENTION");
+      delay(10000);//stall
+    } 
+    Serial.println("FIN");
+  }*/
+}
 
+/*
+============================
+Fonction coups
+============================
+*/
+int music( int partition_C[2][70])
+{
+  /*for (int i=0; i<2; i++)
+    {
+      for (int j=0; j<70; j++)
+      {
+        Serial.print(partition_C[i][j]);
+        Serial.print(", ");
+      }
+      Serial.println();
+    }Affichage partition*/
+    int Temps_I=millis();
+   while (millis()-Temps_I<=16125)
+  {
+    Serial.println("Allo1");
+    if (Serial1.available() > 0)
+    {
+      Serial.println("Allo2");
+      // read the incoming byte:
+      incomingByte = Serial1.read();
       // say what you got:
       if(incomingByte==instrument1 || incomingByte==instrument2)
       {
         Serial.print("I received: ");
         Serial.println(incomingByte, DEC);
-        Serial.println(millis()-start_time);
+        Serial.println(millis()-Temps_I);
         int retour;
         if (incomingByte==instrument1)
         {
-          retour=comparaison_midi(instrument1,millis()-start_time, partition_C);
+          retour=comparaison_midi(instrument1,millis()-Temps_I, partition_C);
         }else
         {
-          retour=comparaison_midi(instrument2,millis()-start_time, partition_C);
+          retour=comparaison_midi(instrument2,millis()-Temps_I, partition_C);
         }
         
         if (retour==Erreur)
         {
-          Serial.println("ERREUR DIMENTION");
+          return Erreur;
         }else if(retour==manquer) // coups pas sur une note
         {
-          //Alumer lumière rouge
+          digitalWrite(22,HIGH);
+          delay(500);
+          digitalWrite(22,LOW);
         }else if(retour==mauvaise_note) // mauvaise note
         {
-          //Alumer lumière Jaune
+          digitalWrite(23,HIGH);
+          delay(500);
+           digitalWrite(23,LOW);
         }else //coups réussie
         {
-          //Alumer lumière Verte
+          digitalWrite(24,HIGH);
+          delay(500);
+          digitalWrite(23,LOW);
         }
       }
     }
   } 
+  return reussie;
 }
 
 /*
@@ -182,7 +274,7 @@ int comparaison_midi (int instrument, int temps, int partition_C[2][70])
     if(partition_C[positionT][0]==0 && partition_F[positionT][1]==0)// pas de coups a se moment
     {
       return manquer;
-    }else if(partition_C[positionT][instrument]==1)// il ya un coups a se moment et ces le bon instrument
+    }else if( partition_C[positionT][instrument]==1)// il ya un coups a se moment et ces le bon instrument
     {
       return reussie;
     }else //il a un coups a se moment mais ce n'est pas le bon instrument
