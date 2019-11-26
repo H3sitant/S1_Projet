@@ -35,9 +35,11 @@ uint16_t Distance (uint8_t capteurId);
 void Rotation1 (int Angle, int TempsAttente,int cote);
 
 //traitement midi
-int comparaison_midi(int instrument, int temps, int partition_C[2][70]);
+int comparaison_midi(int instrument, int temps, int partition_C[2][70], int Note[2][70]);
 void choix_partition (int partition_C[2][70], int partition_I[2][70]);
 int music( int partition_C[2][70]);
+void resultat(int note);
+void tempo(void);
 
 /*
 ====================
@@ -106,7 +108,7 @@ void loop()
   
   
   
-  /*if(ana>30)
+  if(ana>30)
   {
     Serial.println(i);
     digitalWrite(23,HIGH);
@@ -114,106 +116,50 @@ void loop()
     digitalWrite(23,LOW);
     delay(25);
     i++;
-  }*/
-   if(ana>30)
-  {
-    for (int i=0;i<=50; i++)
-      {
-        digitalWrite(22,HIGH);
-        delay(15);
-        digitalWrite(22,LOW);
-        delay(25);
-        digitalWrite(23,HIGH);
-        delay(15);
-        digitalWrite(23,LOW);
-        delay(25);
-        digitalWrite(24,HIGH);
-        delay(15);
-        digitalWrite(24,LOW);
-        delay(25);
-      }
   }
+
   /*
   choix de partition avec bouton
   */
   int partition_C[2][70];
   if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
   {
+    Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
-    int retour= music( partition_C);
+    tempo();
+    
+    int retour= music( partition_C); 
     if (retour==Erreur)
     {
       Serial.println("ERREUR Temps");
       delay(10000);//stall
-    }else
-    {
-      Serial.println(retour);
-    }
+    }else  resultat(retour);
     Serial.println("FIN");
   }
   if(ROBUS_IsBumper(1)==true)//choisir partition Moyenne : changer pour Bouton Vert
   {
-    choix_partition ( partition_C, partition_M);
     Serial.println("Moyen");
-    int retour= music( partition_C);
-    if (retour==Erreur)
-    {
-      Serial.println("ERREUR DIMENTION");
-      delay(10000);//stall
-    }else
-    {
-      Serial.println(retour);
-    }
-    Serial.println("FIN");
-  }
-  if(ROBUS_IsBumper(2)==true)//choisir partition Difficile : changer pour Bouton Vert
-  {
-    choix_partition ( partition_C, partition_D);
-    Serial.println("Difficile");
+    choix_partition ( partition_C, partition_M);
+    tempo();
     int retour= music( partition_C);
     if (retour==Erreur)
     {
       Serial.println("ERREUR Temps");
       delay(10000);//stall
-    }else if (retour==100)
+    }else  resultat(retour);
+    Serial.println("FIN");
+  }
+  if(ROBUS_IsBumper(2)==true)//choisir partition Difficile : changer pour Bouton Vert
+  {
+    Serial.println("Difficile");
+    choix_partition ( partition_C, partition_D);
+    tempo();
+    int retour= music( partition_C);
+    if (retour==Erreur)
     {
-      Serial.println( "resultat: PARFAIT");
-      for (int i=0;i<=50; i++)
-      {
-        digitalWrite(22,HIGH);
-        delay(15);
-        digitalWrite(22,LOW);
-        delay(25);
-        digitalWrite(23,HIGH);
-        delay(15);
-        digitalWrite(23,LOW);
-        delay(25);
-        digitalWrite(24,HIGH);
-        delay(15);
-        digitalWrite(24,LOW);
-        delay(25);
-      }
-    }
-    else if (retour>75)
-    {
-      Serial.println( "resultat: BON");
-      digitalWrite(24,HIGH);
-      delay(5000);
-      digitalWrite(24,LOW);
-    }
-    else if (retour>0)
-    {
-      Serial.println( "resultat: MOYEN");
-      digitalWrite(23,HIGH);
-      delay(5000);
-      digitalWrite(23,LOW);
-    }else 
-    {
-      Serial.println( "resultat: OUCH");
-      digitalWrite(22,HIGH);
-      delay(5000);
-      digitalWrite(22,LOW);
-    }
+      Serial.println("ERREUR Temps");
+      delay(10000);//stall
+    }else  resultat(retour);
     Serial.println("FIN");
   }
 }
@@ -225,22 +171,41 @@ Fonction coups
 */
 int music( int partition_C[2][70])
 {
-  int Temps_I=millis();
+  unsigned long Temps_I=0;
+  Temps_I=millis();
+  Serial.print("Temps:");
+  Serial.println(Temps_I);
+  Serial.print("Millis:");
+  Serial.println(millis());
   int note=100;
-  while (millis()-Temps_I<=16125)
+  int NoteA[2][70];
+  //initier valeur de coups
+  for (int i=0; i<2; i++)
+  {
+    for (int j=0; j<70; j++)
+    {
+      if(partition_C[i][j]==1)
+      {
+        NoteA[i][j]=0;
+      }else NoteA[i][j]=1;
+    }
+  }
+  Serial.print("Millis-temps:");
+  Serial.println(millis()-Temps_I);
+  while ((millis()-Temps_I)<=16125)
   {
     int Entre1 =analogRead(A4);
     int Entre2 =analogRead(A5);
-    if( Entre1>30 ) //|| Entre2
+    if( Entre1>30 ) //||Entre2>30
     {
       
       int retour;
       if (Entre1>30)
       {
-        retour=comparaison_midi(0,millis()-Temps_I, partition_C);
+        retour=comparaison_midi(0,millis()-Temps_I, partition_C,NoteA);
       }else
       {
-        retour=comparaison_midi(1,millis()-Temps_I, partition_C);
+        retour=comparaison_midi(1,millis()-Temps_I, partition_C,NoteA);
       }
 
       if (retour==Erreur)
@@ -251,20 +216,19 @@ int music( int partition_C[2][70])
         digitalWrite(22,HIGH);
         delay(40);
         digitalWrite(22,LOW);
-        note-=4;
         Serial.println("I received: manquer");
       }else if(retour==mauvaise_note) // mauvaise note
       {
         digitalWrite(23,HIGH);
         delay(40);
         digitalWrite(23,LOW);
-        note-=2;
+        note-=1;
         Serial.println("I received: mauvaise note");
       }else if(retour == reussie)//coups réussie
       {
         digitalWrite(24,HIGH);
         delay(40);
-        digitalWrite(23,LOW);
+        digitalWrite(24,LOW);
         Serial.println("I received: Reussi");
       }else
       {
@@ -272,6 +236,19 @@ int music( int partition_C[2][70])
       }
     }
   } 
+  for (int i=0; i<2; i++)
+  {
+    for (int j=0; j<70; j++)
+    {
+      while(NoteA[i][j]>2)
+      {
+        note-=2;
+        NoteA[i][j]--;
+      }
+      if(NoteA[i][j]==0)note-=2;
+    }
+  }
+  Serial.println(note);
   return note;
 }
 
@@ -280,7 +257,7 @@ int music( int partition_C[2][70])
 Comparaison midi
 ====================================
  */
-int comparaison_midi (int instrument, int temps, int partition_C[2][70])
+int comparaison_midi (int instrument, int temps, int partition_C[2][70], int Note[2][70])
 {
 
   //trouver le reste pour pouvoir identifier la position du coups dans le temps
@@ -303,9 +280,11 @@ int comparaison_midi (int instrument, int temps, int partition_C[2][70])
 
     if(partition_C[0][positionT]==0 && partition_C[1][positionT]==0)// pas de coups a se moment
     {
+      Note[instrument][positionT]++;
       return manquer;
     }else if( partition_C[instrument][positionT]==1)// il ya un coups a se moment et ces le bon instrument
     {
+      Note[instrument][positionT]++;
       return reussie;
     }else if( partition_C[abs(instrument-1)][positionT]==1)//il a un coups a se moment mais ce n'est pas le bon instrument
     {
@@ -332,4 +311,84 @@ void choix_partition (int partition_C[2][70], int partition_I[2][70])
       partition_C[i][j]=partition_I[i][j];//innitialisation de la partition choisie
     }
   }
+}
+/*
+=================================
+Traitement note
+=================================
+*/
+void resultat(int note)
+{
+  if (note==100)
+  {
+    Serial.println( "resultat: PARFAIT");
+    for (int i=0;i<=50; i++)
+    {
+      digitalWrite(22,HIGH);
+      delay(15);
+      digitalWrite(22,LOW);
+      delay(25);
+      digitalWrite(23,HIGH);
+      delay(15);
+      digitalWrite(23,LOW);
+      delay(25);
+      digitalWrite(24,HIGH);
+      delay(15);
+      digitalWrite(24,LOW);
+      delay(25);
+    }
+  }
+  else if (note>50)
+  {
+    Serial.println( "resultat: BON");
+    digitalWrite(24,HIGH);
+    delay(5000);
+    digitalWrite(24,LOW);
+  }
+  else if (note>0)
+  {
+    Serial.println( "resultat: MOYEN");
+    digitalWrite(23,HIGH);
+    delay(5000);
+    digitalWrite(23,LOW);
+  }else 
+  {
+    Serial.println( "resultat: OUCH");
+    digitalWrite(22,HIGH);
+    delay(5000);
+    digitalWrite(22,LOW);
+  }
+}
+/*
+==================
+tempo
+=================
+*/
+void tempo(void)
+{
+  digitalWrite(24,HIGH);
+  delay(15);
+  digitalWrite(24,LOW);
+
+  delay(1000);
+  digitalWrite(23,HIGH);
+  delay(15);
+  digitalWrite(23,LOW);
+
+  delay(1000);
+  digitalWrite(24,HIGH);
+  delay(15);
+  digitalWrite(24,LOW);
+
+  delay(1000);
+  digitalWrite(23,HIGH);
+  delay(15);
+  digitalWrite(23,LOW);
+
+  delay(1000);
+  digitalWrite(22,HIGH);
+  delay(15);
+  digitalWrite(22,LOW);
+
+  delay(1000);
 }
