@@ -3,37 +3,6 @@
 #include<math.h>
 #include "Adafruit_TCS34725.h"
 
-#define Bleu 1
-#define Vert 2
-#define Rouge 3
-#define Jaune 4
-
-#define ligne 1
-#define Millieux 2
-#define Vide 0
-
-/*
-  Couleur où se trouve le ballon
- */
-#define Couleur Jaune
-#define BPM 80 000
-
-
-
-//declaration fonction
-float PID(float TargetSpeed);
-void Avancer(float Distance,int TempsAttente,float TargetSpeed,int arret);
-void Tourner(int Direction, int Rotation,int TempsAttente,int arret,float TargetSpeed);
-void Rotation(int angle,int TempsAttente);
-void RadiusTurn(float Radius,int angle,int Direction,int TempsAttente);
-int detectionCouleur();
-void servomoteurPrendre ();
-void servomoteurLacher ();
-int detecteurLigne(float TargetSpeed,int type);
-void TrouverBallon();
-uint16_t Distance (uint8_t capteurId);
-void Rotation1 (int Angle, int TempsAttente,int cote);
-
 //traitement midi
 int comparaison_midi(int instrument, int temps, int partition_C[2][70], int Note[2][70]);
 void choix_partition (int partition_C[2][70], int partition_I[2][70]);
@@ -48,8 +17,8 @@ traitement midi
 */
 //partition
 int partition_F[2][70] =  {//facile
-                          { 0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,  1,0,1,0, 1,0,1,0, 1,0,1,0 ,1,0,1,0,  0,0,0,0, 1,0,0,0 ,0,0,0,0, 1,0,0,0,  0,0,0,0 ,1,0,0,0 ,0,0,0,0, 1,0,0,0,  1,0,0,0, 0,0},
-                          { 1,0,1,0 ,1,0,1,0 ,1,0,1,0 ,1,0,1,0,  0,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0,  1,0,1,0 ,1,0,1,0 ,1,0,1,0 ,1,0,1,0,  1,0,1,0 ,1,0,1,0 ,1,0,1,0 ,1,0,1,0,  1,0,0,0, 0,0}
+                          { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0},
+                          { 1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,0,0,0}
                           };
 int partition_M[2][70] =  {//moyenne
                           { 1,0,0,0 ,0,0,0,0 ,1,0,0,0 ,1,0,0,0,  0,0,0,0 ,1,0,0,0 ,0,0,0,0 ,0,0,0,0,  1,0,0,0 ,1,0,1,0 ,0,0,1,0 ,0,0,0,0,  1,0,1,1 ,0,1,0,0 ,1,0,1,1 ,0,1,0,0,  1,0,0,0, 0,0},
@@ -74,12 +43,11 @@ unsigned int start_time;
 #define BleuD 43
 #define RougeD 44
 #define VertD 45
+
 int randombleu=0; 
 int randomrouge=0; 
 int randomvert=0; 
 float moyenneRNG=0;
-
-int i=0;
 /*
 =====================
 
@@ -117,7 +85,7 @@ void loop()
 { 
   int D1 =analogRead(A4);
   int D2 =analogRead(A5);
-  if(D1>0)
+  /*if(D1>0)
   {
     Serial.print("D1:");
     Serial.println(D1);
@@ -126,11 +94,11 @@ void loop()
   {
     Serial.print("D2:");
     Serial.println(D2);
-  }
-  /*if(D1>30)
+  }*/
+  if(D1>150||D2>100)
   {
-    Serial.println(i);
     Serial.println(D1);
+    Serial.println(D2);
     int VR=randombleu;
     int VB=randomrouge;
     int VV=randomvert;
@@ -139,24 +107,24 @@ void loop()
       randombleu=random(2);
       randomrouge=random(2);
       randomvert=random(2);
-      moyenneRNG=(float)(randombleu+randomrouge+randomvert)/3;
+      moyenneRNG=randombleu+randomrouge+randomvert;
     } while (moyenneRNG == 0 || (randombleu==VB && randomrouge==VR && randomvert==VV));
     digitalWrite(BleuD,randombleu);
     digitalWrite(RougeD,randomrouge);
     digitalWrite(VertD,randomvert);
-    i++;
     delay(25);
-  }*/
+  }
 
   /*
   choix de partition avec bouton
   */
+ 
+  
   int partition_C[2][70];
   if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
   {
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
-    tempo();
     
     int retour= music( partition_C); 
     if (retour==Erreur)
@@ -170,7 +138,6 @@ void loop()
   {
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
-    tempo();
     int retour= music( partition_C);
     if (retour==Erreur)
     {
@@ -183,7 +150,6 @@ void loop()
   {
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
-    tempo();
     int retour= music( partition_C);
     if (retour==Erreur)
     {
@@ -201,15 +167,7 @@ Fonction coups
 */
 int music( int partition_C[2][70])
 {
-  unsigned long Temps_I=0;
-  Temps_I=millis();
-  Serial.print("Temps:");
-  Serial.println(Temps_I);
-  Serial.print("Millis:");
-  Serial.println(millis());
-  int note=100;
-  int NoteA[2][70];
-  //initier valeur de coups
+   int NoteA[2][70];
   for (int i=0; i<2; i++)
   {
     for (int j=0; j<70; j++)
@@ -220,17 +178,26 @@ int music( int partition_C[2][70])
       }else NoteA[i][j]=1;
     }
   }
-  Serial.print("Millis-temps:");
-  Serial.println(millis()-Temps_I);
+  tempo();
+  unsigned long Temps_I=0;
+  Temps_I=millis();
+  /*Serial.print("Temps:");
+  Serial.println(Temps_I);
+  Serial.print("Millis:");
+  Serial.println(millis());*/
+  int note=100;
+  
+  //Serial.print("Millis-temps:");
+  //Serial.println(millis()-Temps_I);
+  
   while ((millis()-Temps_I)<=16125)
   {
     int Entre1 =analogRead(A4);
     int Entre2 =analogRead(A5);
-    if( Entre1>30 || Entre2>50)
+    if( Entre1>150 || Entre2>70)
     {
-      
       int retour;
-      if (Entre1>80||Entre2>30)
+      if (Entre1>150)
       {
         retour=comparaison_midi(0,millis()-Temps_I, partition_C,NoteA);
       }else
@@ -249,10 +216,9 @@ int music( int partition_C[2][70])
         Serial.println("I received: manquer");
       }else if(retour==mauvaise_note) // mauvaise note
       {
-        digitalWrite(BleuD,0);
-        digitalWrite(RougeD,1);
-        digitalWrite(VertD,1);
-        note-=1;
+        digitalWrite(BleuD,1);
+        digitalWrite(RougeD,0);
+        digitalWrite(VertD,0);
         Serial.println("I received: mauvaise note");
       }else if(retour == reussie)//coups réussie
       {
@@ -264,19 +230,19 @@ int music( int partition_C[2][70])
       {
         Serial.println("I received: Impossible");
       }
+      delay(25);
     }
-    delay(25);
-  } 
+  }
   for (int i=0; i<2; i++)
   {
     for (int j=0; j<70; j++)
     {
-      while(NoteA[i][j]>2)
+      while(NoteA[i][j]>1)
       {
-        note-=2;
+        note-=1;
         NoteA[i][j]--;
       }
-      if(NoteA[i][j]==0)note-=2;
+      if(NoteA[i][j]==0)note-=1;
     }
   }
   Serial.println(note);
@@ -291,6 +257,7 @@ Comparaison midi
 int comparaison_midi (int instrument, int temps, int partition_C[2][70], int Note[2][70])
 {
 
+  
   //trouver le reste pour pouvoir identifier la position du coups dans le temps
   int positionT = temps % 250;
 
@@ -309,16 +276,32 @@ int comparaison_midi (int instrument, int temps, int partition_C[2][70], int Not
   else// comparaison du coups avec le fichier midi
   {
 
-    if(partition_C[0][positionT]==0 && partition_C[1][positionT]==0)// pas de coups a se moment
+    if(partition_C[0][positionT]==1 && partition_C[1][positionT]==1)
+    {
+      Note[instrument][positionT]++;
+      Note[abs(instrument-1)][positionT]++;
+      if(Note[instrument][positionT]>1||Note[abs(instrument-1)][positionT]>1)
+      return manquer;
+      else
+      return reussie;
+    }
+    else if(partition_C[0][positionT]==0 && partition_C[1][positionT]==0)// pas de coups a se moment
     {
       Note[instrument][positionT]++;
       return manquer;
     }else if( partition_C[instrument][positionT]==1)// il ya un coups a se moment et ces le bon instrument
     {
       Note[instrument][positionT]++;
+      if(Note[instrument][positionT]>1)
+      return manquer;
+      else
       return reussie;
     }else if( partition_C[abs(instrument-1)][positionT]==1)//il a un coups a se moment mais ce n'est pas le bon instrument
     {
+      Note[abs(instrument-1)][positionT]++;
+      if(Note[abs(instrument-1)][positionT]>1)
+      return manquer;
+      else
       return mauvaise_note;
     }else
     {
@@ -353,26 +336,30 @@ void resultat(int note)
   if (note==100)
   {
     Serial.println( "resultat: PARFAIT");
-    for (int i=0;i<=50; i++)
+    for (int i=0;i<=100; i++)
     {
+      int VR=randombleu;
+      int VB=randomrouge;
+      int VV=randomvert;
       int randombleu=0; 
       int randomrouge=0; 
       int randomvert=0; 
       float moyenneRNG=0;
+      
       do 
       {
         randombleu=random(2);
         randomrouge=random(2);
         randomvert=random(2);
-        moyenneRNG=(float)(randombleu+randomrouge+randomvert)/3;
-      } while (moyenneRNG == 0);
+        moyenneRNG=randombleu+randomrouge+randomvert;
+      } while (moyenneRNG == 0|| (randombleu==VB && randomrouge==VR && randomvert==VV));
       digitalWrite(BleuD,randombleu);
       digitalWrite(RougeD,randomrouge);
       digitalWrite(VertD,randomvert);
       delay(100);
     }
   }
-  else if (note>50)
+  else if (note>75)
   {
     Serial.println( "resultat: BON");
     delay(100);
@@ -381,13 +368,13 @@ void resultat(int note)
     digitalWrite(VertD,1);
     delay(5000);
   }
-  else if (note>0)
+  else if (note>50)
   {
     Serial.println( "resultat: MOYEN");
     delay(100);
-    digitalWrite(BleuD,0);
-    digitalWrite(RougeD,1);
-    digitalWrite(VertD,1);
+    digitalWrite(BleuD,1);
+    digitalWrite(RougeD,0);
+    digitalWrite(VertD,0);
     delay(5000);
   }else 
   {
@@ -416,42 +403,47 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
   digitalWrite(VertD,0);
 
-  delay(1000);
+  delay(985);
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
   digitalWrite(VertD,0);
 
-  delay(1000);
+  delay(985);
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
   digitalWrite(VertD,0);
 
-  delay(1000);
+  delay(985);
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
   digitalWrite(VertD,0);
 
-  delay(1000);
+  delay(985);
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
