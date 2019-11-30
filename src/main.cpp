@@ -25,8 +25,8 @@ int partition_M[2][70] =  {//moyenne
                           { 0,0,0,0 ,1,0,0,0 ,0,0,0,0 ,0,0,0,0,  1,0,0,0 ,0,0,0,0 ,1,0,0,0 ,1,0,0,0,  0,0,1,0 ,0,0,0,0 ,1,0,0,0 ,1,0,1,0,  0,1,0,0 ,1,0,1,1 ,0,1,0,0 ,1,0,1,1,  0,0,0,0, 0,0}
                           };
 int partition_D[2][70] =  {//difficile
-                          { 0,0,0,0 ,1,0,0,0 ,0,0,0,0 ,1,0,0,0,  0,0,1,0 ,0,0,1,0 ,0,0,1,0 ,0,0,1,0,  0,0,1,0 ,0,0,1,0 ,0,1,0,0 ,1,1,1,1,  1,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0, 0,0,0,0 ,0,0},
-                          { 1,0,1,0 ,0,0,1,0 ,0,0,1,0 ,0,0,1,0,  1,1,0,0 ,1,1,0,0 ,1,1,0,0 ,1,1,0,0,  1,1,0,1 ,1,0,0,0 ,1,0,1,1 ,0,0,0,0,  1,0,0,0 ,0,0,0,0 ,0,0,0,0 ,0,0,0,0, 0,0,0,0 ,0,0}
+                          { 0,0,0,0 ,1,0,0,0 ,0,0,0,0 ,1,0,0,0,  0,0,1,0 ,0,0,1,0 ,0,0,1,0 ,0,0,1,0,  0,0,1,0 ,0,0,1,0 ,0,1,0,0 ,1,1,1,1,  0,0,1,0 ,0,0,1,0 ,0,0,1,0 ,0,0,1,0, 1,0,0,0 ,0,0},
+                          { 1,0,1,0 ,0,0,1,0 ,0,0,1,0 ,0,0,1,0,  1,1,0,0 ,1,1,0,0 ,1,1,0,0 ,1,1,0,0,  1,1,0,1 ,1,0,0,0 ,1,0,1,1 ,0,0,0,0,  1,1,0,0 ,1,1,0,0 ,1,1,0,0 ,1,1,0,0, 1,0,0,0 ,0,0}
                           };
 //temps
 unsigned int start_time;
@@ -242,7 +242,7 @@ int music( int partition_C[2][70])
         note-=1;
         NoteA[i][j]--;
       }
-      if(NoteA[i][j]==0)note-=1;
+      if(NoteA[i][j]==0)note-=2;
     }
   }
   Serial.println(note);
@@ -275,11 +275,9 @@ int comparaison_midi (int instrument, int temps, int partition_C[2][70], int Not
   }
   else// comparaison du coups avec le fichier midi
   {
-
     if(partition_C[0][positionT]==1 && partition_C[1][positionT]==1)
     {
       Note[instrument][positionT]++;
-      Note[abs(instrument-1)][positionT]++;
       if(Note[instrument][positionT]>1||Note[abs(instrument-1)][positionT]>1)
       return manquer;
       else
@@ -449,5 +447,34 @@ void tempo(void)
   digitalWrite(RougeD,0);
   digitalWrite(VertD,0);
 
+  delay(985);
+  digitalWrite(BleuD,1);
+  digitalWrite(RougeD,1);
+  digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
+  delay(15);
+  digitalWrite(BleuD,0);
+  digitalWrite(RougeD,0);
+  digitalWrite(VertD,0);
+
+  delay(985);
+  digitalWrite(BleuD,1);
+  digitalWrite(RougeD,1);
+  digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
+  delay(15);
+  digitalWrite(BleuD,0);
+  digitalWrite(RougeD,0);
+  digitalWrite(VertD,0);
+
+  delay(985);
+  digitalWrite(BleuD,1);
+  digitalWrite(RougeD,1);
+  digitalWrite(VertD,1);
+  AX_BuzzerON(500,15);
+  delay(15);
+  digitalWrite(BleuD,0);
+  digitalWrite(RougeD,0);
+  digitalWrite(VertD,0);
   delay(1000);
 }
