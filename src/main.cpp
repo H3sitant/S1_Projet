@@ -13,6 +13,24 @@
 #define Millieux 2
 #define Vide 0
 
+
+//Niveau de difficulté
+#define NiveauFacile 10
+#define NiveauMoyen 11
+#define NiveauDifficile 12
+
+//
+#define SignalDepart 20
+
+//communication
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include "printf.h"
+RF24 radio(53,48);
+
+const uint64_t pipes[2] = { 0xF0F0F0F0E1LL  ,0xF0F0F0F0D2LL };
+
 //declaration fonction
 float PID(float TargetSpeed);
 void Avancer(float Distance,int TempsAttente,float TargetSpeed,int arret);
@@ -56,6 +74,17 @@ void setup()
     
   }
   SERVO_SetAngle(1, 150);
+  printf_begin();
+  radio.begin();
+  radio.setChannel(113);
+  radio.setAutoAck(false);
+  radio.setRetries(15,15);
+  radio.setDataRate(RF24_250KBPS);
+  radio.setPALevel(RF24_PA_MIN);
+
+  radio.openReadingPipe(1,pipes[1]);
+  radio.startListening();
+  radio.printDetails();
 }
 
 /*
@@ -69,20 +98,44 @@ void loop()
 Code Robot esclave
 ======================
  */
+  //Recevoir valeur
   
-  if(ROBUS_IsBumper(1)==true)
+    
+    radio.openWritingPipe(pipes[1]);
+    radio.openReadingPipe(1,pipes[0]);
+    byte message=0;
+    // if there is data ready
+    if ( radio.available() )
+    {
+      // Dump the payloads until we've gotten everything
+      
+      bool done = false;
+      while (!done)
+      {
+        // Fetch the payload, and see if this was the last one.
+        done = radio.read( &message, sizeof(message) );
+
+        // Spew it
+        printf("Got payload:  ");
+        Serial.println(message);
+
+      radio.startListening();
+    }
+  }
+
+  if(message==NiveauFacile)
   {
     
     Serial.println(1);
    partition(Vert);
   }
-  else if(ROBUS_IsBumper(2)==true)
+  else if(message==NiveauMoyen)
   {
     
     Serial.println(2);
     partition(Jaune);
   }
-  else if(ROBUS_IsBumper(3)==true)
+  else if(message==NiveauDifficile)
   {
     
     Serial.println(3);
@@ -126,6 +179,7 @@ void partition (int couleur)
   delay(1000);
   Rotation1(85, 1000,0);
   Avancer(7,0,speed,1);
+
   //Envoyer pres
   delay(8000);
   long temps=millis();
