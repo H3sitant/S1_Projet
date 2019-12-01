@@ -73,6 +73,9 @@ void setup()
     pinMode(22,OUTPUT);
     pinMode(23,OUTPUT);
     pinMode(24,OUTPUT);
+    pinMode(26,INPUT);
+    pinMode(27,INPUT);
+    pinMode(28,INPUT);
     pinMode(BleuD, OUTPUT);
     pinMode(RougeD, OUTPUT); 
     pinMode(VertD, OUTPUT);
@@ -121,7 +124,7 @@ void loop()
  
   
   int partition_C[2][70];
-  if(ROBUS_IsBumper(0)==true)//choisir partition facile : changer pour Bouton Vert
+  if(digitalRead(26)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
@@ -134,7 +137,7 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(ROBUS_IsBumper(1)==true)//choisir partition Moyenne : changer pour Bouton Vert
+  if(digitalRead(27)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
@@ -146,7 +149,7 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(ROBUS_IsBumper(2)==true)//choisir partition Difficile : changer pour Bouton Vert
+  if(digitalRead(28)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
