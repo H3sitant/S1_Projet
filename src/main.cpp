@@ -29,7 +29,7 @@ void Rotation1 (int Angle, int TempsAttente,int cote);
 
 
 //Initialisation des variables globales
-float speed=0.2;
+float speed=0.12;
 float L=18.350;
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
@@ -46,6 +46,7 @@ void setup()
     delay(1000);
     BoardInit();
     pinMode(41,OUTPUT);
+    pinMode(39,OUTPUT);
 
 
   if (tcs.begin()) {
@@ -62,6 +63,7 @@ void setup()
  */
 void loop() 
 {
+
 /*
 ======================
 Code Robot esclave
@@ -88,53 +90,26 @@ Code Robot esclave
   }
   else if(ROBUS_IsBumper(0)==true)
   {
-    Serial.println(0);
-    while( detectionCouleur()!=Rouge);
-  Serial.println("trouve");
-    /*unsigned int temps=millis();
-    while(millis()-temps<5000)
+    long temps=millis();
+    long tempsm=micros();
+    while(millis()-temps<16675)
     {
-      detecteurLigne(0.15,1);
-    }*/
-    
-    //trouver_speed();
-  }
-  
-  
-}
-
-/*
-=====================
-finding midi speed
-===================
-*/
-void trouver_speed()
-{
-  unsigned NbPulse=(3200*10.5*2.54)/(23.9389);
-  unsigned pulse=100000;
-  float new_speed=1;
-  while(pulse>NbPulse)
-  {
-    ENCODER_ReadReset(0);
-    MOTOR_SetSpeed(0, new_speed);
-    MOTOR_SetSpeed(1, new_speed);
-    unsigned int PulseCount=abs(ENCODER_Read(0));
-
-   while(PulseCount<=NbPulse)
-    {
-      PulseCount = abs(ENCODER_Read(0));
+      if((millis()-temps)%1000>480 && (millis()-temps)%1000<520)
+      {
+        tempsm=micros();
+        while (micros()-tempsm<60000)
+        {
+          digitalWrite(39,HIGH);
+          delayMicroseconds(1200);
+          digitalWrite(39,LOW);
+          delayMicroseconds(1200);
+        } 
+      }
+      temps=millis();
+      detecteurLigne(speed,1);
+      Serial.println(millis()-temps);
     }
-    pulse= abs(ENCODER_Read(0));
-    Serial.println(new_speed);
-    new_speed-=0.01;
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
-    delay(500);
   }
-  
-  MOTOR_SetSpeed(0, 0);
-  MOTOR_SetSpeed(1, 0);
-  delay(10000);
 }
 /*
 =========================
@@ -145,29 +120,34 @@ void partition (int couleur)
 {
   while( detectionCouleur()!=couleur)
   {
-    detecteurLigne(0.15,1);
+    detecteurLigne(speed,1);
   }
-  MOTOR_SetSpeed(0,0);
-  MOTOR_SetSpeed(1,0);
-  Serial.println("trouve");
+  Avancer(5.7*2.54/2+9.53,0,-speed,1);
   delay(1000);
-  /*Rotation1(85, 8000,0);
+  Rotation1(85, 1000,0);
+  Avancer(7,0,speed,1);
+  //Envoyer pres
+  delay(8000);
   long temps=millis();
-  while(millis()-temps<16.675)
+  while(millis()-temps<16675)
   {
-    detecteurLigne(0.15,1);
+    if((millis()-temps)%1000==675)AX_BuzzerON(500,50);
+    detecteurLigne(speed,1);
   }
    Rotation1(180,20,0);
-   while( detectionCouleur()!=couleur)
+  while( detectionCouleur()!=couleur)
   {
-    detecteurLigne(0.15,1);
+    detecteurLigne(speed,1);
   }
-  Rotation1(85, 8000, 1);
+  Avancer(5.7*2.54/2+9.53,0,-speed,1);
+  Rotation1(90, 1000, 1);
+  if(couleur!=Vert)
   while( detectionCouleur()!=Vert)
   {
-    detecteurLigne(0.15,1);
+    detecteurLigne(speed,1);
   }
-  Rotation1(180,20,0);*/
+  Avancer(5.7*2.54*2+9.53,0,-speed,1);
+  Rotation1(198,20,0);
 }
 
 /*
@@ -403,18 +383,18 @@ int detectionCouleur ()
 
   tcs.getRawData(&r,  &g,  &b,  &c);
 
-  Serial.println(r);
+  /*Serial.println(r);
   Serial.println(g);
   Serial.println(b);
   Serial.println(c);
-  delay(1000);
+  delay(1000);*/
  
-    if(r>30 && r<45 && g>50 && g<70 && b>60 && b<70 && c>165 && c<250) //trouvé valeur RGBC pour bleu
+    if(r>30 && r<45 && g>50 && g<70 && b>55 && b<75 && c>165 && c<250) //trouvé valeur RGBC pour bleu
     {
         couleur=Vert;
         
     }
-    else if(r>120 && r<150 && g>100 && g<140 && b>75 && b<=100 && c>300) //trouvé valeur RGBC pour vert
+    else if(r>100 && r<150 && g>90 && g<140 && b>70 && b<=100 && c>250) //trouvé valeur RGBC pour vert
     {
       couleur=Jaune;
     }
