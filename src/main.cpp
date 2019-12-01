@@ -167,13 +167,17 @@ void loop()
     byte message = NiveauFacile;
     printf("Now sending  ");
     Serial.print(message);
-    bool ok = radio.write( &message, sizeof(message) );
+    bool ok;
+    do
+    {
+      ok = radio.write( &message, sizeof(message) );
+      if (ok)
+        printf("Envoyé \n");
+      else
+        printf("Erreur. \n\r");
+      delay(1000);
+    } while (ok==false);
     
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
 
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
@@ -192,13 +196,16 @@ void loop()
     byte message = NiveauMoyen;
     printf("Now sending  ");
     Serial.print(message);
-    bool ok = radio.write( &message, sizeof(message) );
-    
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
+    bool ok;
+    do
+    {
+       ok = radio.write( &message, sizeof(message) );
+      if (ok)
+        printf("Envoyé \n");
+      else
+        printf("Erreur. \n\r");
+      delay(1000);
+    } while (ok==false);
 
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
@@ -216,13 +223,16 @@ void loop()
     byte message = NiveauDifficile;
     printf("Now sending  ");
     Serial.print(message);
-    bool ok = radio.write( &message, sizeof(message) );
-    
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
+    bool ok;
+    do
+    {
+      ok = radio.write( &message, sizeof(message) );
+      if (ok)
+        printf("Envoyé \n");
+      else
+        printf("Erreur. \n\r");
+      delay(1000);
+    } while (ok==false);
 
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
@@ -259,7 +269,7 @@ int music( int partition_C[2][70])
   
   //Recevoir robot B=pret
   int D1=analogRead(A6);
-  while(D1<400)D1=analogRead(A6);
+  //while(D1<400)D1=analogRead(A6);
   //Envoyer commence
   Temps_I=millis();
   int note=100;
