@@ -5,20 +5,13 @@
 #include <stdlib.h>
 #include "Adafruit_TCS34725.h"
 
-#define Bleu 1
-#define Vert 2
+#define Vert 1
+#define Jaune 2
 #define Rouge 3
-#define Jaune 4
 
 #define ligne 1
 #define Millieux 2
 #define Vide 0
-
-/*
-  Couleur où se trouve le ballon
- */
-#define Couleur Jaune
-
 
 //declaration fonction
 float PID(float TargetSpeed);
@@ -34,12 +27,16 @@ void TrouverBallon();
 uint16_t Distance (uint8_t capteurId);
 void Rotation1 (int Angle, int TempsAttente,int cote);
 
+
 //Initialisation des variables globales
 float speed=0.2;
 float L=18.350;
 
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
+//midi
+void partition(int couleur);
+void trouver_speed();
 
 void setup() 
 {
@@ -67,231 +64,114 @@ void loop()
 {
 /*
 ======================
-Code Robot A
+Code Robot esclave
 ======================
  */
-if(ROBUS_IsBumper(2)==true)
-{
-  servomoteurPrendre();
-  delay(1000);
-  servomoteurLacher();
-}
-if(ROBUS_IsBumper(3)==true)
-{
-
-  Avancer(40,400,-speed,1);
-  // Tourner pour etre parallèle a la ligne
-  if(Couleur==Bleu||Couleur==Vert)
+  
+  if(ROBUS_IsBumper(1)==true)
   {
-    Tourner(1,80,500,1,speed);
-  }else{
-    Tourner(0,80,500,1,speed);
+    
+    Serial.println(1);
+   partition(Vert);
   }
-//suivre ligne
-  while(detectionCouleur()==0)
+  else if(ROBUS_IsBumper(2)==true)
   {
-    detecteurLigne(speed,1);
+    
+    Serial.println(2);
+    partition(Jaune);
+  }
+  else if(ROBUS_IsBumper(3)==true)
+  {
+    
+    Serial.println(3);
+    partition(Rouge);
+  }
+  else if(ROBUS_IsBumper(0)==true)
+  {
+    Serial.println(0);
+    while( detectionCouleur()!=Rouge);
+  Serial.println("trouve");
+    /*unsigned int temps=millis();
+    while(millis()-temps<5000)
+    {
+      detecteurLigne(0.15,1);
+    }*/
+    
+    //trouver_speed();
+  }
+  
+  
+}
+
+/*
+=====================
+finding midi speed
+===================
+*/
+void trouver_speed()
+{
+  unsigned NbPulse=(3200*10.5*2.54)/(23.9389);
+  unsigned pulse=100000;
+  float new_speed=1;
+  while(pulse>NbPulse)
+  {
+    ENCODER_ReadReset(0);
+    MOTOR_SetSpeed(0, new_speed);
+    MOTOR_SetSpeed(1, new_speed);
+    unsigned int PulseCount=abs(ENCODER_Read(0));
+
+   while(PulseCount<=NbPulse)
+    {
+      PulseCount = abs(ENCODER_Read(0));
+    }
+    pulse= abs(ENCODER_Read(0));
+    Serial.println(new_speed);
+    new_speed-=0.01;
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0);
+    delay(500);
+  }
+  
+  MOTOR_SetSpeed(0, 0);
+  MOTOR_SetSpeed(1, 0);
+  delay(10000);
+}
+/*
+=========================
+Traitement déplacement en fonction de la partition
+========================
+*/
+void partition (int couleur)
+{
+  while( detectionCouleur()!=couleur)
+  {
+    detecteurLigne(0.15,1);
   }
   MOTOR_SetSpeed(0,0);
   MOTOR_SetSpeed(1,0);
-  // Trouver la bonne couleur
-  while (detectionCouleur()!=Couleur)
-  {
-    Avancer(20,500,-speed,1);
-   // Serial.println("avancer1");
-    if(Couleur==Bleu||Couleur==Vert)
-    {
-    Tourner(0,82,500,1,-speed);
-    }else{
-      Tourner(1,82,500,1,-speed);
-    }
-    
-    //Serial.println("tourner1");
-    Avancer(15, 500,-speed,1);//28.73+ distance roue capteur
-   // Serial.println("avancer2");
-    while (detecteurLigne(speed,0)!=ligne)
-    {
-      Avancer(0.25,0,-speed,0);
-    }
-    while(detectionCouleur()==0)
-    {
-      detecteurLigne(speed,1);
-    }
-  }
-  
-  // prendre ballon
-  Avancer(16.5,100,-speed,1);
-  if(Couleur==Bleu||Couleur==Vert)
-    {
-      Tourner(1,45,250,1,speed);
-    }else{
-      Tourner(0,45,250,1,speed);
-    }
-  
-  Avancer(20.32,100,-speed,1);
-
-  if(Couleur==Bleu||Couleur==Vert)
-    {
-      Rotation1(90,500,1);
-    }else{
-      Rotation1(90,500,0);
-    }
-    TrouverBallon();
-
-  
-
-  // retourner milieu
-
-  if(Couleur==Rouge || Couleur==Vert)
-  {
-    Avancer(25,100,-speed,1);
-    if(Couleur==Rouge)
-    {
-      Rotation1(139,500,1);
-      Avancer(48,500,speed,1);
-      Tourner(1,90,500,0,speed);
-    }
-    else
-    {
-      Rotation1(139,500,0);
-      Avancer(48,500,speed,1);
-      Tourner(0,90,500,1,speed);
-    }
-    Avancer(45,500,speed,1);
-  
-  }else{
-
-    Avancer(15,100,-speed,1);
-    Rotation1(180,100,0);
-    Avancer(85,100,0.4,1);
-  }
-
-  
-
- //Lacher Ballon
-  servomoteurLacher();
+  Serial.println("trouve");
   delay(1000);
-  // sortir du chemin
-
-    if(Couleur==Rouge || Couleur==Vert)
+  /*Rotation1(85, 8000,0);
+  long temps=millis();
+  while(millis()-temps<16.675)
   {
-    
-    Avancer(100,500,-speed,1);
-  
-  }else{
-
-      Avancer(30,100,-0.4,1);
-  Rotation(45,90);
-  Avancer(80,100,-0.4,1);
+    detecteurLigne(0.15,1);
   }
-
-  delay(60000);
+   Rotation1(180,20,0);
+   while( detectionCouleur()!=couleur)
+  {
+    detecteurLigne(0.15,1);
+  }
+  Rotation1(85, 8000, 1);
+  while( detectionCouleur()!=Vert)
+  {
+    detecteurLigne(0.15,1);
+  }
+  Rotation1(180,20,0);*/
 }
-
 
 /*
-======================
-Code de test fonction
-======================
- */
-/*  if(ROBUS_IsBumper(3)==true)
-  {
-    Serial.println("bumper arriere");
-       SERVO_Enable(0);
-        SERVO_SetAngle(0, 20);
-        delay(500);
-        SERVO_SetAngle(0, 150);
-        delay(2000);
-        SERVO_SetAngle(0, 20);
-        delay(500);
-        SERVO_Disable(0);
-        int i=0;
-    while (i<=65000)
-    {
-      detecteurLigne(0.3,150,150,7);
-      i++;
-    }
-    Serial.println("fin");
-    delay(500);
-    
-  }
-   
-
-  if(detectionCouleur() == Couleur)
-  {
-    Avancer(5,1000);
-    servomoteurPrendre();
-    Rotation(180,100);
-    //Tourner(0,180,0);
-    Avancer(112.08,0);
-    servomoteurLacher();
-    Tourner(0,135,0);
-    Avancer(60,0);
-  }
-
-  while (detectionCouleur() != Couleur)
-  {
-    Rotation(135,100);
-     //Tourner(0,135,0);
-     Avancer(151.4,0);
-  }
-  
-  if(detectionCouleur() == Couleur)
-  {
-    Avancer(5,1000);
-    servomoteurPrendre();
-    Tourner(0,180,0);
-    Avancer(112.8,0);
-    servomoteurLacher();
-    Tourner(0,135,0);
-    Avancer(60,0);
-  }
-  }
-
-  
-
-    while (detectionCouleur() != Couleur)
-    {
-      detecteurLigne(0);
-    }
-    //Avancer(-28,0);
-   // delay(1000);
-
-    while (detecteurLigne(0)==0)
-    {
-      Tourner(1,5,0);
-    }
-    delay(1000);
-    while (detectionCouleur() != Couleur)
-    {
-       while (detectionCouleur() == 0)
-     {
-        Avancer(1,0);
-        detecteurLigne(speed);
-      }
-      delay(1000);
-      if(detectionCouleur() != Couleur)
-      {
-        Avancer(15.23, 500);
-        Tourner(0,90,500);
-        Avancer(50, 500);//28.73+ distance roue capteur
-      }
-    }
-    TrouverBallon();
-    Rotation180(1,500);
-    while (detecteurLigne(0)!=5)
-    {
-      Avancer(1,0);
-      detecteurLigne(speed);
-    }
-    servomoteurLacher();
-
-    //aller position pas dérengente
-  }
-*/
-}
-
-/*==========================
+==========================
 Avancer
 ==========================
 */
@@ -523,26 +403,24 @@ int detectionCouleur ()
 
   tcs.getRawData(&r,  &g,  &b,  &c);
 
-  //Serial.println(r);
-  //Serial.println(g);
-  //Serial.println(b);
-  //Serial.println(c);
+  Serial.println(r);
+  Serial.println(g);
+  Serial.println(b);
+  Serial.println(c);
+  delay(1000);
  
-    if(r>20 && r<35 && g>40 && g<50 && b>55 && b<75 && c>135 && c<145) //trouvé valeur RGBC pour bleu
+    if(r>30 && r<45 && g>50 && g<70 && b>60 && b<70 && c>165 && c<250) //trouvé valeur RGBC pour bleu
     {
-        couleur=Bleu;
+        couleur=Vert;
+        
     }
-    else if(r>20 && r<35 && g>40 && g<60 && b>35 && b<=55 && c>120 && c<150) //trouvé valeur RGBC pour vert
-    {
-      couleur=Vert;
-    }
-    else if(r>50 && r<80 && g>30 && g<50 && b>35 && b<55 && c>140 && c<180) //trouvé valeur RGBC pour rouge
-    {
-      couleur=Rouge;
-    }
-    else if(r>100 && r<160 && g>90 && g<140 && b>50 && b<80 && c>280 && c<380) //trouvé valeur RGBC pour jaune
+    else if(r>120 && r<150 && g>100 && g<140 && b>75 && b<=100 && c>300) //trouvé valeur RGBC pour vert
     {
       couleur=Jaune;
+    }
+    else if(r>70 && r<100 && g>30 && g<80 && b>45 && b<70 && c>180 && c<240) //trouvé valeur RGBC pour rouge
+    {
+      couleur=Rouge;
     }
     else 
     {
@@ -589,7 +467,7 @@ Dectecteur de ligne
  {
   int Detect=0;
   float tension = analogRead(A8)*5.0/1023.0;
-  //Serial.println(tension);
+  Serial.println(tension);
 
  
 
@@ -613,7 +491,7 @@ Dectecteur de ligne
     {
       MOTOR_SetSpeed(1,0);
       MOTOR_SetSpeed(0,0);
-      Tourner(1,5,0,0,-TargetSpeed*1.7);
+      Tourner(1,5,0,0,-TargetSpeed*1.5);
     }
     Detect=ligne;
   }
@@ -632,7 +510,7 @@ Dectecteur de ligne
     {
       MOTOR_SetSpeed(1,0);
       MOTOR_SetSpeed(0,0);
-      Tourner(0,5,0,0,-TargetSpeed*1.7);
+      Tourner(0,5,0,0,-TargetSpeed*1.5);
     }
     Detect=ligne;
   }
@@ -640,7 +518,7 @@ Dectecteur de ligne
   {
     Detect=Vide;
   }
-    Avancer(0.25,0,-TargetSpeed,0);
+  Avancer(0.25,0,-TargetSpeed,0);
 
   
   return Detect;
