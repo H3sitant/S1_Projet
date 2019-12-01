@@ -73,9 +73,11 @@ void setup()
     pinMode(22,OUTPUT);
     pinMode(23,OUTPUT);
     pinMode(24,OUTPUT);
-    pinMode(26,INPUT);
-    pinMode(27,INPUT);
-    pinMode(28,INPUT);
+    pinMode(10,INPUT);
+    pinMode(11,INPUT);
+    pinMode(12,INPUT);
+    pinMode(47,OUTPUT);
+    pinMode(48,INPUT);
     pinMode(BleuD, OUTPUT);
     pinMode(RougeD, OUTPUT); 
     pinMode(VertD, OUTPUT);
@@ -124,8 +126,9 @@ void loop()
  
   
   int partition_C[2][70];
-  if(digitalRead(26)==HIGH)//choisir partition facile : changer pour Bouton Vert
+  if(digitalRead(10)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
+    //Envoyer facile
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
     
@@ -137,8 +140,9 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(digitalRead(27)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
+  if(digitalRead(11)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
+    //Envoyer facile
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
     int retour= music( partition_C);
@@ -149,8 +153,9 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(digitalRead(28)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
+  if(digitalRead(12)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
+    //Envoyer difficile
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
     int retour= music( partition_C);
@@ -183,16 +188,13 @@ int music( int partition_C[2][70])
   }
   tempo();
   unsigned long Temps_I=0;
+  
+  //Recevoir robot B=pret
+  int D1=analogRead(A6);
+  while(D1<400)D1=analogRead(A6);
+  //Envoyer commence
   Temps_I=millis();
-  /*Serial.print("Temps:");
-  Serial.println(Temps_I);
-  Serial.print("Millis:");
-  Serial.println(millis());*/
   int note=100;
-  
-  //Serial.print("Millis-temps:");
-  //Serial.println(millis()-Temps_I);
-  
   while ((millis()-Temps_I)<=16125)
   {
     int Entre1 =analogRead(A4);
