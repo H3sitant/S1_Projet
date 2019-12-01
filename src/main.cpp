@@ -9,7 +9,23 @@ void choix_partition (int partition_C[2][70], int partition_I[2][70]);
 int music( int partition_C[2][70]);
 void resultat(int note);
 void tempo(void);
+//communication
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include "printf.h"
 
+//Niveau de difficulté
+#define NiveauFacile 10
+#define NiveauMoyen 11
+#define NiveauDifficile 12
+
+//
+#define SignalDepart 20
+
+RF24 radio(53,48);
+// Radio pipe addresses for the 2 nodes to communicate.
+const uint64_t pipes[2] = { 0xF0F0F0F0D2LL, 0xF0F0F0F0E1LL };
 /*
 ====================
 traitement midi
@@ -81,6 +97,19 @@ void setup()
     pinMode(BleuD, OUTPUT);
     pinMode(RougeD, OUTPUT); 
     pinMode(VertD, OUTPUT);
+     printf_begin();
+  
+  radio.begin();
+  radio.setChannel(113);
+  radio.setAutoAck(false);
+  // optionally, increase the delay between retries & # of retries
+  radio.setRetries(15,15);
+  radio.setDataRate(RF24_250KBPS);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.openReadingPipe(1,pipes[1]);
+
+  radio.startListening();
+  radio.printDetails();
 }
 
 /*
@@ -123,12 +152,29 @@ void loop()
   /*
   choix de partition avec bouton
   */
- 
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  // First, stop listening so we can talk.
+  radio.stopListening();
+
+  // Take the time, and send it.  This will block until complete
+    
   
   int partition_C[2][70];
   if(digitalRead(10)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
     //Envoyer facile
+    byte message = NiveauFacile;
+    printf("Now sending  ");
+    Serial.print(message);
+    bool ok = radio.write( &message, sizeof(message) );
+    
+    if (ok)
+      printf("Envoyé \n");
+    else
+      printf("Erreur. \n\r");
+    delay(1000);
+
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
     
@@ -142,7 +188,18 @@ void loop()
   }
   if(digitalRead(11)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
-    //Envoyer facile
+    //Envoyer moyen
+    byte message = NiveauMoyen;
+    printf("Now sending  ");
+    Serial.print(message);
+    bool ok = radio.write( &message, sizeof(message) );
+    
+    if (ok)
+      printf("Envoyé \n");
+    else
+      printf("Erreur. \n\r");
+    delay(1000);
+
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
     int retour= music( partition_C);
@@ -156,6 +213,17 @@ void loop()
   if(digitalRead(12)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
     //Envoyer difficile
+    byte message = NiveauDifficile;
+    printf("Now sending  ");
+    Serial.print(message);
+    bool ok = radio.write( &message, sizeof(message) );
+    
+    if (ok)
+      printf("Envoyé \n");
+    else
+      printf("Erreur. \n\r");
+    delay(1000);
+
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
     int retour= music( partition_C);
