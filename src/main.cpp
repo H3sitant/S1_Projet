@@ -76,14 +76,13 @@ void setup()
   SERVO_SetAngle(1, 150);
   printf_begin();
   radio.begin();
-  radio.setChannel(113);
+  radio.setChannel(118);
   radio.setAutoAck(false);
   radio.setRetries(15,15);
   radio.setDataRate(RF24_250KBPS);
   radio.setPALevel(RF24_PA_MIN);
-
+  radio.openWritingPipe(pipes[0]);
   radio.openReadingPipe(1,pipes[1]);
-  radio.startListening();
   radio.printDetails();
 }
 
@@ -99,12 +98,9 @@ Code Robot esclave
 ======================
  */
   //Recevoir valeur
-  
-    
-  radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1,pipes[0]);
   byte message=0;
   // if there is data ready
+  radio.startListening();
   if ( radio.available() )
   {
       // Dump the payloads until we've gotten everything
@@ -122,22 +118,22 @@ Code Robot esclave
       radio.startListening();
     }
   }
-  radio.stopListening();
+  
   if(message==NiveauFacile)
   {
-    
+    radio.stopListening();
     Serial.println(1);
     partition(Vert);
   }
   else if(message==NiveauMoyen)
   {
-    
+    radio.stopListening();
     Serial.println(2);
     partition(Jaune);
   }
   else if(message==NiveauDifficile)
   {
-    
+    radio.stopListening();
     Serial.println(3);
     partition(Rouge);
   }
@@ -160,29 +156,23 @@ void partition (int couleur)
   Rotation1(85, 1000,0);
   Avancer(7,0,speed,1);
   Serial.println(millis()-new_temps);
-  //Envoyer presradio.openWritingPipe(pipes[1]);
-    radio.openReadingPipe(1,pipes[0]);
-    byte message;
-    radio.startListening();
-    // if there is data ready
-    if ( radio.available() )
-    {
-      // Dump the payloads until we've gotten everything
-      
-      bool done = false;
-      while (!done)
-      {
-        // Fetch the payload, and see if this was the last one.
-        done = radio.read( &message, sizeof(message) );
+  // if there is data ready
+  // Take the time, and send it.  This will block until complete
+  byte message = SignalDepart;
+  printf("Now sending  ");
+  Serial.print(message);
+  bool ok;
+  do
+  {
+    ok = radio.write( &message, sizeof(message) );
+    if (ok)
+      printf("Envoyé \n");
+    else
+      printf("Erreur. \n\r");
+    delay(1000);
+  }while (ok!=true);
 
-        // Spew it
-        printf("Got payload:  ");
-        Serial.println(message);
-
-      radio.startListening();
-    }
-  }
-  delay(8000);
+  delay(7000);
   long temps=millis();
   while(millis()-temps<16675)
   {
