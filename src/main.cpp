@@ -127,7 +127,7 @@ Code Robot esclave
   {
     
     Serial.println(1);
-   partition(Vert);
+    partition(Vert);
   }
   else if(message==NiveauMoyen)
   {
@@ -141,28 +141,7 @@ Code Robot esclave
     Serial.println(3);
     partition(Rouge);
   }
-  else if(ROBUS_IsBumper(0)==true)
-  {
-    long temps=millis();
-    long tempsm=micros();
-    while(millis()-temps<16675)
-    {
-      if((millis()-temps)%1000>480 && (millis()-temps)%1000<520)
-      {
-        tempsm=micros();
-        while (micros()-tempsm<60000)
-        {
-          digitalWrite(39,HIGH);
-          delayMicroseconds(1200);
-          digitalWrite(39,LOW);
-          delayMicroseconds(1200);
-        } 
-      }
-      temps=millis();
-      detecteurLigne(speed,1);
-      Serial.println(millis()-temps);
-    }
-  }
+
 }
 /*
 =========================
@@ -173,7 +152,7 @@ void partition (int couleur)
 {
   while( detectionCouleur()!=couleur)
   {
-    detecteurLigne(speed,1);
+    detecteurLigne(0.4,1);
   }
   Avancer(5.7*2.54/2+9.53,0,-speed,1);
   delay(1000);
@@ -191,15 +170,19 @@ void partition (int couleur)
    Rotation1(180,20,0);
   while( detectionCouleur()!=couleur)
   {
-    detecteurLigne(speed,1);
+    detecteurLigne(0.4,1);
   }
-  Avancer(5.7*2.54/2+9.53,0,-speed,1);
+  Avancer(5.7*2.54/2+8,0,-speed,1);
   Rotation1(90, 1000, 1);
   if(couleur!=Vert)
-  while( detectionCouleur()!=Vert)
   {
-    detecteurLigne(speed,1);
+    while( detectionCouleur()!=Vert)
+    {
+      detecteurLigne(speed,1);
+    }
+    Avancer(5.7*2.54*2+8,0,-speed,1);
   }
+  else
   Avancer(5.7*2.54*2+9.53,0,-speed,1);
   Rotation1(198,20,0);
 }
