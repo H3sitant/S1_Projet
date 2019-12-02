@@ -266,9 +266,12 @@ int music( int partition_C[2][70],int niveau)
   if(niveau==NiveauFacile)delay(9000);
   else if(niveau==NiveauMoyen)delay(13000);
   else delay(17000);
+  
+  int D1=analogRead(A6);
+  //while(D1<400)D1=analogRead(A6);
   radio.openWritingPipe(pipes[0]);
   radio.openReadingPipe(1,pipes[1]);
-  byte message = NiveauDifficile;
+  byte message = SignalDepart;
   printf("Now sending  ");
   Serial.print(message);
   bool ok;
@@ -279,16 +282,12 @@ int music( int partition_C[2][70],int niveau)
       printf("Envoyé \n");
     else
       printf("Erreur. \n\r");
-    delay(500);
+    delay(1000);
   } while (ok!=true);
-
-  tempo();
-  unsigned long Temps_I=0;
   
-  //Recevoir robot B=pret
-  int D1=analogRead(A6);
-  //while(D1<400)D1=analogRead(A6);
-  //Envoyer commence
+  tempo();
+
+  unsigned long Temps_I=0;
   Temps_I=millis();
   int note=100;
   while ((millis()-Temps_I)<=16125)
