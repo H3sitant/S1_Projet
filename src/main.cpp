@@ -167,13 +167,16 @@ void loop()
     byte message = NiveauFacile;
     printf("Now sending  ");
     Serial.print(message);
-    bool ok = radio.write( &message, sizeof(message) );
-    
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
+    bool ok;
+    do
+    {
+      ok = radio.write( &message, sizeof(message) );
+      if (ok)
+        printf("Envoyé \n");
+      else
+        printf("Erreur. \n\r");
+      delay(500);
+    } while (ok!=true);
 
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
@@ -190,7 +193,7 @@ void loop()
   {
     //Envoyer moyen
     byte message = NiveauMoyen;
-    printf("Now sending  ");
+    Serial.println("Now sending  ");
     Serial.print(message);
     bool ok;
     do
@@ -203,8 +206,6 @@ void loop()
       delay(500);
     } while (ok!=true);
     
-    
-
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
     int retour= music( partition_C,NiveauMoyen);
