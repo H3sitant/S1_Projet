@@ -6,6 +6,7 @@
 //traitement midi
 int comparaison_midi(int instrument, int temps, int partition_C[2][70], int Note[2][70]);
 void choix_partition (int partition_C[2][70], int partition_I[2][70]);
+int transmission(byte message);
 int music( int partition_C[2][70]);
 void resultat(int note);
 void tempo(void);
@@ -164,23 +165,12 @@ void loop()
   if(digitalRead(10)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
     //Envoyer facile
-    byte message = NiveauFacile;
-    printf("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-      ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(1000);
-    } while (ok==false);
-    
-
+    transmission(NiveauFacile);
+    delay(4000);
     Serial.println("Facile");
-    choix_partition ( partition_C, partition_F);
+    if(transmission(SignalDepart)==SignalDepart);
+    {
+         choix_partition ( partition_C, partition_F);
     
     int retour= music( partition_C); 
     if (retour==Erreur)
@@ -189,26 +179,19 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    }
+    
+
   }
   if(digitalRead(11)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
     //Envoyer moyen
-    byte message = NiveauMoyen;
-    printf("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-       ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(1000);
-    } while (ok==false);
-
+    transmission(NiveauMoyen);
+    delay(8000);
     Serial.println("Moyen");
-    choix_partition ( partition_C, partition_M);
+    if (transmission(SignalDepart)==SignalDepart)
+    {
+      choix_partition ( partition_C, partition_M);
     int retour= music( partition_C);
     if (retour==Erreur)
     {
@@ -216,26 +199,19 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    }
+    
+    
   }
   if(digitalRead(12)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
     //Envoyer difficile
-    byte message = NiveauDifficile;
-    printf("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-      ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(1000);
-    } while (ok==false);
-
+    transmission(NiveauDifficile);
+    delay(8000);
     Serial.println("Difficile");
-    choix_partition ( partition_C, partition_D);
+    if (transmission(SignalDepart)==SignalDepart)
+    {
+      choix_partition ( partition_C, partition_D);
     int retour= music( partition_C);
     if (retour==Erreur)
     {
@@ -243,6 +219,9 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    }
+    
+    
   }
 }
 
@@ -269,7 +248,7 @@ int music( int partition_C[2][70])
   
   //Recevoir robot B=pret
   int D1=analogRead(A6);
-  //while(D1<400)D1=analogRead(A6);
+  while(D1<400)D1=analogRead(A6);
   //Envoyer commence
   Temps_I=millis();
   int note=100;
@@ -561,3 +540,30 @@ void tempo(void)
   digitalWrite(VertD,0);
   delay(1000);
 }
+
+int transmission(byte message) 
+{
+
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  radio.stopListening();
+
+    printf("Now sending  ");
+    Serial.print(message);
+    bool ok;
+
+    do
+    {
+
+      ok = radio.write( &message, sizeof(message) );
+      if (ok)
+        printf("Envoyé \n");
+      else
+        printf("Erreur. \n\r");
+        delay(500);
+    } while (ok==false);
+    
+    return message;
+
+}
+
