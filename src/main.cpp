@@ -101,28 +101,28 @@ Code Robot esclave
   //Recevoir valeur
   
     
-    radio.openWritingPipe(pipes[1]);
-    radio.openReadingPipe(1,pipes[0]);
-    byte message=0;
-    // if there is data ready
-    if ( radio.available() )
-    {
+  radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
+  byte message=0;
+  // if there is data ready
+  if ( radio.available() )
+  {
       // Dump the payloads until we've gotten everything
       
-      bool done = false;
-      while (!done && message != SignalDepart)
-      {
-        // Fetch the payload, and see if this was the last one.
-        done = radio.read( &message, sizeof(message) );
+    bool done = false;
+    while (!done && message != SignalDepart)
+    {
+      // Fetch the payload, and see if this was the last one.
+      done = radio.read( &message, sizeof(message) );
 
-        // Spew it
-        printf("Got payload:  ");
-        Serial.println(message);
+      // Spew it
+      printf("Got payload:  ");
+      Serial.println(message);
 
       radio.startListening();
     }
   }
-
+  radio.stopListening();
   if(message==NiveauFacile)
   {
     
@@ -162,7 +162,8 @@ void partition (int couleur)
   Serial.println(millis()-new_temps);
   //Envoyer presradio.openWritingPipe(pipes[1]);
     radio.openReadingPipe(1,pipes[0]);
-    byte message=0;
+    byte message;
+    radio.startListening();
     // if there is data ready
     if ( radio.available() )
     {
