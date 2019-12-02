@@ -110,7 +110,7 @@ Code Robot esclave
       // Dump the payloads until we've gotten everything
       
       bool done = false;
-      while (!done)
+      while (!done && message != SignalDepart)
       {
         // Fetch the payload, and see if this was the last one.
         done = radio.read( &message, sizeof(message) );
@@ -159,7 +159,27 @@ void partition (int couleur)
   Rotation1(85, 1000,0);
   Avancer(7,0,speed,1);
 
-  //Envoyer pres
+  //Envoyer presradio.openWritingPipe(pipes[1]);
+    radio.openReadingPipe(1,pipes[0]);
+    byte message=0;
+    // if there is data ready
+    if ( radio.available() )
+    {
+      // Dump the payloads until we've gotten everything
+      
+      bool done = false;
+      while (!done)
+      {
+        // Fetch the payload, and see if this was the last one.
+        done = radio.read( &message, sizeof(message) );
+
+        // Spew it
+        printf("Got payload:  ");
+        Serial.println(message);
+
+      radio.startListening();
+    }
+  }
   delay(8000);
   long temps=millis();
   while(millis()-temps<16675)
