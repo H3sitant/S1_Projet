@@ -16,11 +16,11 @@
 
 //Niveau de difficulté
 #define NiveauFacile 10
-#define NiveauMoyen 11
-#define NiveauDifficile 12
+#define NiveauMoyen 20
+#define NiveauDifficile 30
 
 //
-#define SignalDepart 20
+#define SignalDepart 40
 
 //communication
 #include <SPI.h>
@@ -150,15 +150,16 @@ Traitement déplacement en fonction de la partition
 */
 void partition (int couleur)
 {
+  unsigned long new_temps=millis();
   while( detectionCouleur()!=couleur)
   {
     detecteurLigne(0.4,1);
   }
-  Avancer(5.7*2.54/2+9.53,0,-speed,1);
-  delay(1000);
+  Avancer(5.7*2.54/2+8.5,0,-speed,1);
+  delay(100);
   Rotation1(85, 1000,0);
   Avancer(7,0,speed,1);
-
+  Serial.println(millis()-new_temps);
   //Envoyer presradio.openWritingPipe(pipes[1]);
     radio.openReadingPipe(1,pipes[0]);
     byte message=0;
@@ -187,13 +188,13 @@ void partition (int couleur)
     if((millis()-temps)%1000==675)AX_BuzzerON(500,50);
     detecteurLigne(speed,1);
   }
-   Rotation1(180,20,0);
+   Rotation1(190,20,0);
   while( detectionCouleur()!=couleur)
   {
     detecteurLigne(0.4,1);
   }
   Avancer(5.7*2.54/2+8,0,-speed,1);
-  Rotation1(90, 1000, 1);
+  Rotation1(94, 1000, 1);
   if(couleur!=Vert)
   {
     while( detectionCouleur()!=Vert)
@@ -231,7 +232,7 @@ Avancer
       PulseCount = abs(ENCODER_Read(0));
       //Serial.println(PulseCount); 
 
-         if (TimeSample>=100)
+         if (TimeSample>=15)
         {
           MOTOR_SetSpeed(1,PID(TargetSpeed));
           MOTOR_SetSpeed(0, TargetSpeed);
@@ -413,7 +414,7 @@ Boucle de controle PID
   float Kp = 0.001;
   float Ki = 1;
   float Erreur = 0;
-  float sec = 7000;
+  float sec = 4000;
 
 
     int encodeur_0 = ENCODER_Read(0);
@@ -504,7 +505,7 @@ Dectecteur de ligne
  {
   int Detect=0;
   float tension = analogRead(A8)*5.0/1023.0;
-  Serial.println(tension);
+  //Serial.println(tension);
 
  
 
