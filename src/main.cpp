@@ -100,13 +100,13 @@ void setup()
      printf_begin();
   
   radio.begin();
-  radio.setChannel(113);
+  radio.setChannel(118);
   radio.setAutoAck(false);
   // optionally, increase the delay between retries & # of retries
   radio.setRetries(15,15);
   radio.setDataRate(RF24_250KBPS);
   radio.setPALevel(RF24_PA_MIN);
-  radio.openReadingPipe(1,pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
 
   radio.startListening();
   radio.printDetails();
@@ -152,8 +152,8 @@ void loop()
   /*
   choix de partition avec bouton
   */
-  radio.openWritingPipe(pipes[0]);
-  radio.openReadingPipe(1,pipes[1]);
+  radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
   // First, stop listening so we can talk.
   radio.stopListening();
 
@@ -263,18 +263,43 @@ int music( int partition_C[2][70],int niveau)
       }else NoteA[i][j]=1;
     }
   }
-  if(niveau==NiveauFacile)delay(9000);
-  else if(niveau==NiveauMoyen)delay(13000);
-  else delay(17000);
+  //if(niveau==NiveauFacile)delay(9000);
+  //else if(niveau==NiveauMoyen)delay(13000);
+  //else delay(17000);
   
-  int D1=analogRead(A6);
+  //int D1=analogRead(A6);
   //while(D1<400)D1=analogRead(A6);
-  radio.openWritingPipe(pipes[0]);
-  radio.openReadingPipe(1,pipes[1]);
+  byte message;
+  radio.startListening();
+  do
+  {
+    delay(500);
+    if ( radio.available() )
+    {
+      // Dump the payloads until we've gotten everything
+    
+      bool done = false;
+      while (!done)
+      {
+        // Fetch the payload, and see if this was the last one.
+        done = radio.read( &message, sizeof(message) );
+
+        // Spew it
+        printf("Got payload:  ");
+        Serial.println(message);
+
+      radio.startListening();
+      }
+    }
+  } while (message!=40);
+
+  /*radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
+  radio.stopListening();
   byte message = SignalDepart;
   printf("Now sending  ");
   Serial.print(message);
-  bool ok;
+  bool ok=0;
   do
   {
     ok = radio.write( &message, sizeof(message) );
@@ -284,7 +309,7 @@ int music( int partition_C[2][70],int niveau)
       printf("Erreur. \n\r");
     delay(1000);
   } while (ok!=true);
-  
+   */
   tempo();
 
   unsigned long Temps_I=0;
