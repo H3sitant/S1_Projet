@@ -161,7 +161,7 @@ void loop()
     
   
   int partition_C[2][70];
-  if(digitalRead(10)==HIGH)//choisir partition facile : changer pour Bouton Vert
+  if(digitalRead(8)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
     //Envoyer facile
     byte message = NiveauFacile;
@@ -189,7 +189,7 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(digitalRead(11)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
+  if(digitalRead(9)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
     //Envoyer moyen
     byte message = NiveauMoyen;
@@ -216,7 +216,7 @@ void loop()
     }else  resultat(retour);
     Serial.println("FIN");
   }
-  if(digitalRead(12)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
+  if(digitalRead(10)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
     //Envoyer difficile
     byte message = NiveauDifficile;
