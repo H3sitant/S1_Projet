@@ -252,10 +252,11 @@ int music( int partition_C[2][70],int niveau)
   //else delay(17000);
   
   ReceptionSansFil(RobotMaestroPret);
-  //while(analogRead(Metronome)<400);
-  while(ROBUS_IsBumper(2)!=true);
+  while(analogRead(Metronome)<400);
+  //while(ROBUS_IsBumper(2)!=true);
+  unsigned int temp=millis();
   TransmissionSansFil(SignalDepart);
-
+  while(((millis()-temp)%1000)!=0);
   tempo();
 
   unsigned long Temps_I=0;
@@ -465,10 +466,6 @@ tempo
 */
 void tempo(void)
 {
-  digitalWrite(BleuD,0);
-  digitalWrite(RougeD,0);
-  digitalWrite(VertD,0);
-
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
@@ -571,7 +568,7 @@ int TransmissionSansFil(int ValeurTx)
     }
     else{
       printf("Erreur. \n\r");
-      delay(500);
+      delay(1000);
     }
   } while (ok!=true);
   radio.startListening();
