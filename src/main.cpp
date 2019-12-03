@@ -108,6 +108,7 @@ Code Robot esclave
   
   if(message==NiveauFacile)
   {
+   //while(detectionCouleur()!=45);
     radio.stopListening();
     Serial.println(1);
     partition(Vert);
@@ -151,7 +152,6 @@ void partition (int couleur)
   long temps=millis();
   while(millis()-temps<16675)
   {
-    //if((millis()-temps)%1000==675)AX_BuzzerON(500,50);
     detecteurLigne(speed,1);
   }
    Rotation1(190,20,0);
@@ -159,7 +159,7 @@ void partition (int couleur)
   {
     detecteurLigne(0.4,1);
   }
-  Avancer(5.7*2.54/2+8,0,-speed,1);
+  Avancer(5.7*2.54/2+5,0,-speed,1);
   Rotation1(94, 1000, 1);
   if(couleur!=Vert)
   {
@@ -167,7 +167,7 @@ void partition (int couleur)
     {
       detecteurLigne(speed,1);
     }
-    Avancer(5.7*2.54*2+4,0,-speed,1);
+    Avancer(5.7*2.54*2,0,-speed,1);
   }
   Avancer(5.7*2.54*2+9.53,0,-speed,1);
   Rotation1(190,20,0);
@@ -412,16 +412,16 @@ int detectionCouleur ()
   Serial.println(c);
   delay(1000);*/
  
-    if(r>30 && r<45 && g>50 && g<70 && b>55 && b<75 && c>165 && c<250) //trouvé valeur RGBC pour bleu
+    if(r>27 && r<42 && g>45 && g<65 && b>55 && b<70 && c>140 && c<180) //trouvé valeur RGBC pour bleu
     {
         couleur=Vert;
         
     }
-    else if(r>100 && r<150 && g>90 && g<140 && b>70 && b<=100 && c>250) //trouvé valeur RGBC pour vert
+    else if(r>85 && r<100 && g>80 && g<100 && b>65 && b<=85 && c>225) //trouvé valeur RGBC pour vert
     {
       couleur=Jaune;
     }
-    else if(r>70 && r<100 && g>30 && g<80 && b>45 && b<70 && c>180 && c<240) //trouvé valeur RGBC pour rouge
+    else if(r>60 && r<80 && g>30 && g<80 && b>45 && b<70 && c>160 && c<200) //trouvé valeur RGBC pour rouge
     {
       couleur=Rouge;
     }
