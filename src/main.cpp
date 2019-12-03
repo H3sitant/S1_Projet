@@ -9,6 +9,12 @@ void choix_partition (int partition_C[2][70], int partition_I[2][70]);
 int music( int partition_C[2][70],int niveau);
 void resultat(int note);
 void tempo(void);
+int TransmissionSansFil(int ValeurTx);
+int ReceptionSansFil(int ValeurAttendu);
+int TransmissionAvecFil(int ValeurTx);
+int ReceptionAvecFil(int ValeurAttendu);
+void(*resetFunc)(void)=0;
+
 //communication
 #include <SPI.h>
 #include "nRF24L01.h"
@@ -20,12 +26,12 @@ void tempo(void);
 #define NiveauMoyen 20
 #define NiveauDifficile 30
 
-//
+#define RobotMaestroPret 35
 #define SignalDepart 40
 
 RF24 radio(53,48);
 // Radio pipe addresses for the 2 nodes to communicate.
-const uint64_t pipes[2] = { 0xF0F0F0F0D2LL, 0xF0F0F0F0E1LL };
+const uint64_t pipes[2] = { 0xE7E7E7E7E7LL, 0xF0F0F0F0D2LL };
 /*
 ====================
 traitement midi
@@ -56,9 +62,11 @@ unsigned int start_time;
 #define manquer 3
 #define Erreur 401
 
+//// PIN /////
 #define BleuD 43
 #define RougeD 44
 #define VertD 45
+#define Metronome A6
 
 int randombleu=0; 
 int randomrouge=0; 
@@ -89,6 +97,8 @@ void setup()
     pinMode(22,OUTPUT);
     pinMode(23,OUTPUT);
     pinMode(24,OUTPUT);
+    pinMode(8,INPUT);
+    pinMode(9,INPUT);
     pinMode(10,INPUT);
     pinMode(11,INPUT);
     pinMode(12,INPUT);
@@ -106,8 +116,8 @@ void setup()
   radio.setRetries(15,15);
   radio.setDataRate(RF24_250KBPS);
   radio.setPALevel(RF24_PA_MIN);
-  radio.openReadingPipe(1,pipes[0]);
-
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
   radio.startListening();
   radio.printDetails();
 }
@@ -116,7 +126,12 @@ void setup()
     Appel des fonctions pour réaliser le parcours
  */
 void loop() 
-{ 
+{
+ 
+  // optionally, increase the delay between retries & # of retries
+  /*radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  radio.startListening();*/
   int D1 =analogRead(A4);
   int D2 =analogRead(A5);
   /*if(D1>0)
@@ -149,13 +164,8 @@ void loop()
     delay(25);
   }
 
-  /*
-  choix de partition avec bouton
-  */
-  radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1,pipes[0]);
   // First, stop listening so we can talk.
-  radio.stopListening();
+  //radio.stopListening();
 
   // Take the time, and send it.  This will block until complete
     
@@ -163,21 +173,8 @@ void loop()
   int partition_C[2][70];
   if(digitalRead(8)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
-    //Envoyer facile
-    byte message = NiveauFacile;
-    printf("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-      ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(500);
-    } while (ok!=true);
-
+    radio.stopListening();
+    TransmissionSansFil(NiveauFacile);
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
     
@@ -188,23 +185,15 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    radio.openWritingPipe(pipes[0]);
+    radio.openReadingPipe(1,pipes[1]);
+    radio.startListening();
   }
   if(digitalRead(9)==HIGH)//choisir partition Moyenne : changer pour Bouton Vert
   {
+    radio.stopListening();
     //Envoyer moyen
-    byte message = NiveauMoyen;
-    Serial.println("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-      ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(500);
-    } while (ok!=true);
+    TransmissionSansFil(NiveauMoyen);
     
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
@@ -215,23 +204,15 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    radio.openWritingPipe(pipes[0]);
+    radio.openReadingPipe(1,pipes[1]);
+    radio.startListening();
   }
   if(digitalRead(10)==HIGH)//choisir partition Difficile : changer pour Bouton Vert
   {
+    radio.stopListening();
     //Envoyer difficile
-    byte message = NiveauDifficile;
-    printf("Now sending  ");
-    Serial.print(message);
-    bool ok;
-    do
-    {
-      ok = radio.write( &message, sizeof(message) );
-      if (ok)
-        printf("Envoyé \n");
-      else
-        printf("Erreur. \n\r");
-      delay(500);
-    } while (ok!=true);
+    TransmissionSansFil(NiveauDifficile);
 
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
@@ -242,6 +223,9 @@ void loop()
       delay(10000);//stall
     }else  resultat(retour);
     Serial.println("FIN");
+    radio.openWritingPipe(pipes[0]);
+    radio.openReadingPipe(1,pipes[1]);
+    radio.startListening();
   }
 }
 
@@ -267,49 +251,11 @@ int music( int partition_C[2][70],int niveau)
   //else if(niveau==NiveauMoyen)delay(13000);
   //else delay(17000);
   
-  //int D1=analogRead(A6);
-  //while(D1<400)D1=analogRead(A6);
-  byte message;
-  radio.startListening();
-  do
-  {
-    delay(500);
-    if ( radio.available() )
-    {
-      // Dump the payloads until we've gotten everything
-    
-      bool done = false;
-      while (!done)
-      {
-        // Fetch the payload, and see if this was the last one.
-        done = radio.read( &message, sizeof(message) );
+  ReceptionSansFil(RobotMaestroPret);
+  //while(analogRead(Metronome)<400);
+  while(ROBUS_IsBumper(2)!=true);
+  TransmissionSansFil(SignalDepart);
 
-        // Spew it
-        printf("Got payload:  ");
-        Serial.println(message);
-
-      radio.startListening();
-      }
-    }
-  } while (message!=40);
-
-  /*radio.openWritingPipe(pipes[1]);
-  radio.openReadingPipe(1,pipes[0]);
-  radio.stopListening();
-  byte message = SignalDepart;
-  printf("Now sending  ");
-  Serial.print(message);
-  bool ok=0;
-  do
-  {
-    ok = radio.write( &message, sizeof(message) );
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
-  } while (ok!=true);
-   */
   tempo();
 
   unsigned long Temps_I=0;
@@ -603,3 +549,89 @@ void tempo(void)
   digitalWrite(VertD,0);
   delay(1000);
 }
+
+int TransmissionSansFil(int ValeurTx)
+{
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  
+  // First, stop listening so we can talk.
+  radio.stopListening();
+
+  byte message = ValeurTx;
+  printf("Now sending  ");
+  Serial.print(message);
+  bool ok = 0;
+    ok = radio.write( &message, sizeof(message) );
+
+ do{     
+    if (ok){
+      printf("Envoyé \n");
+    return 1;
+    }
+    else{
+      printf("Erreur. \n\r");
+      delay(500);
+    }
+  } while (ok!=true);
+  radio.startListening();
+  return 0;
+}
+
+
+int ReceptionSansFil(int ValeurAttendu)
+{
+  radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
+  // if there is data ready
+  radio.startListening();
+
+  byte message=0;
+    do
+    {
+      delay(100);
+      if ( radio.available() )
+      {
+        // Dump the payloads until we've gotten everything
+        
+        bool done = false;
+        while (!done)
+        {
+          // Fetch the payload, and see if this was the last one.
+          done = radio.read( &message, sizeof(message) );
+
+          // Spew it
+          printf("Got payload:  ");
+          Serial.println(message);
+
+        radio.stopListening();
+        } 
+      }
+    } while(message !=ValeurAttendu);
+  return message;
+}
+
+
+int TransmissionAvecFil(int ValeurTx)
+{
+  Serial1.write(ValeurTx);
+  return 1;
+
+}
+
+
+int ReceptionAvecFil(int ValeurAttendu)
+{
+  int ValeurRx;
+  do{
+    if (Serial1.available()) {
+      ValeurRx = Serial1.read();
+    }
+    printf("Got payload:  ");
+    Serial.println(ValeurRx);
+  }while(ValeurRx != ValeurAttendu);
+
+  return ValeurRx;
+}
+
+
