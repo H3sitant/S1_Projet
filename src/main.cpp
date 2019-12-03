@@ -108,7 +108,7 @@ Code Robot esclave
   
   if(message==NiveauFacile)
   {
-   //while(detectionCouleur()!=45);
+    //                                                                                                                                                                                                               while(detectionCouleur()!=45);
     radio.stopListening();
     Serial.println(1);
     partition(Vert);
@@ -423,12 +423,12 @@ int detectionCouleur ()
   Serial.println(c);
   delay(1000);*/
  
-    if(r>27 && r<42 && g>45 && g<65 && b>55 && b<70 && c>140 && c<180) //trouvé valeur RGBC pour bleu
+    if(r>27 && r<47 && g>45 && g<70 && b>55 && b<70 && c>140 && c<180) //trouvé valeur RGBC pour bleu
     {
         couleur=Vert;
         
     }
-    else if(r>85 && r<100 && g>80 && g<100 && b>65 && b<=85 && c>225) //trouvé valeur RGBC pour vert
+    else if(r>85 && r<110 && g>80 && g<110 && b>65 && b<=85 && c>225) //trouvé valeur RGBC pour vert
     {
       couleur=Jaune;
     }
@@ -440,7 +440,7 @@ int detectionCouleur ()
     {
         couleur=0;
     }
-  //Serial.println(couleur);
+  Serial.println(couleur);
   return couleur;
 }
 
