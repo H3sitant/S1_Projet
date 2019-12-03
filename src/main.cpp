@@ -19,7 +19,7 @@
 #define NiveauMoyen 20
 #define NiveauDifficile 30
 
-//
+#define RobotMaestroPret 35
 #define SignalDepart 40
 
 //communication
@@ -29,7 +29,7 @@
 #include "printf.h"
 RF24 radio(53,48);
 
-const uint64_t pipes[2] = { 0xF0F0F0F0E1LL  ,0xF0F0F0F0D2LL };
+const uint64_t pipes[2] = { 0xE7E7E7E7E7LL  ,0xF0F0F0F0D2LL };
 
 //declaration fonction
 float PID(float TargetSpeed);
@@ -44,6 +44,10 @@ int detecteurLigne(float TargetSpeed,int type);
 void TrouverBallon();
 uint16_t Distance (uint8_t capteurId);
 void Rotation1 (int Angle, int TempsAttente,int cote);
+int TransmissionSansFil(int ValeurTx);
+int ReceptionSansFil();
+int TransmissionAvecFil(int ValeurTx);
+int ReceptionAvecFil();
 
 
 //Initialisation des variables globales
@@ -83,6 +87,7 @@ void setup()
   radio.setPALevel(RF24_PA_MIN);
   radio.openWritingPipe(pipes[0]);
   radio.openReadingPipe(1,pipes[1]);
+  radio.startListening();
   radio.printDetails();
 }
 
@@ -98,26 +103,8 @@ Code Robot esclave
 ======================
  */
   //Recevoir valeur
-  byte message=0;
+  byte message=ReceptionSansFil();
   // if there is data ready
-  radio.startListening();
-  if ( radio.available() )
-  {
-      // Dump the payloads until we've gotten everything
-      
-    bool done = false;
-    while (!done && message != SignalDepart)
-    {
-      // Fetch the payload, and see if this was the last one.
-      done = radio.read( &message, sizeof(message) );
-
-      // Spew it
-      printf("Got payload:  ");
-      Serial.println(message);
-
-      radio.startListening();
-    }
-  }
   
   if(message==NiveauFacile)
   {
@@ -158,25 +145,13 @@ void partition (int couleur)
   Serial.println(millis()-new_temps);
   // if there is data ready
   // Take the time, and send it.  This will block until complete
-  byte message = SignalDepart;
-  printf("Now sending  ");
-  Serial.print(message);
-  bool ok;
-  do
-  {
-    ok = radio.write( &message, sizeof(message) );
-    if (ok)
-      printf("Envoyé \n");
-    else
-      printf("Erreur. \n\r");
-    delay(1000);
-  }while (ok!=true);
-
+  TransmissionSansFil(RobotMaestroPret);
+  while(ReceptionSansFil() != SignalDepart);
   delay(7000);
   long temps=millis();
   while(millis()-temps<16675)
   {
-    if((millis()-temps)%1000==675)AX_BuzzerON(500,50);
+    //if((millis()-temps)%1000==675)AX_BuzzerON(500,50);
     detecteurLigne(speed,1);
   }
    Rotation1(190,20,0);
@@ -192,11 +167,10 @@ void partition (int couleur)
     {
       detecteurLigne(speed,1);
     }
-    Avancer(5.7*2.54*2+8,0,-speed,1);
+    Avancer(5.7*2.54*2+4,0,-speed,1);
   }
-  else
   Avancer(5.7*2.54*2+9.53,0,-speed,1);
-  Rotation1(198,20,0);
+  Rotation1(190,20,0);
 }
 
 /*
@@ -605,4 +579,83 @@ uint16_t Distance (uint8_t capteurId)
       return distance;
     }
     return 0;
+}
+
+
+int TransmissionSansFil(int ValeurTx)
+{
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  // First, stop listening so we can talk.
+  radio.stopListening();
+
+  byte message = ValeurTx;
+  printf("Now sending  ");
+  Serial.print(message);
+  bool ok = 0;
+    ok = radio.write( &message, sizeof(message) );
+
+ do{     
+    if (ok){
+      printf("Envoyé \n");
+    return 1;
+    }
+    else{
+      printf("Erreur. \n\r");
+      delay(500);
+    }
+  } while (ok!=true);
+  radio.startListening();
+  return 0;
+}
+
+
+int ReceptionSansFil()
+{
+  radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
+  // if there is data ready
+  radio.startListening();
+
+  byte message=0;
+      delay(100);
+      if ( radio.available() )
+      {
+        // Dump the payloads until we've gotten everything
+        
+        bool done = false;
+        while (!done)
+        {
+          // Fetch the payload, and see if this was the last one.
+          done = radio.read( &message, sizeof(message) );
+
+          // Spew it
+          printf("Got payload:  ");
+          Serial.println(message);
+
+        radio.startListening();
+        } 
+      }
+  return message;
+}
+
+
+int TransmissionAvecFil(int ValeurTx)
+{
+  Serial1.write(ValeurTx);
+  return 1;
+
+}
+
+
+int ReceptionAvecFil()
+{
+  int ValeurRx;
+    if (Serial1.available()) {
+      ValeurRx = Serial1.read();
+    }
+    printf("Got payload:  ");
+    Serial.println(ValeurRx);
+
+  return ValeurRx;
 }
