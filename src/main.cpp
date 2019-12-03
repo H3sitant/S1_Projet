@@ -169,7 +169,17 @@ void loop()
 
   // Take the time, and send it.  This will block until complete
     
-  
+  if(ROBUS_IsBumper(1)==true)
+  { 
+    int i=0;
+    while(i==0)
+    {
+      int ana = analogRead(Metronome);
+      if(ana>550)
+      Serial.println(ana);
+    }
+
+  }
   int partition_C[2][70];
   if(digitalRead(8)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
@@ -252,7 +262,7 @@ int music( int partition_C[2][70],int niveau)
   //else delay(17000);
   
   ReceptionSansFil(RobotMaestroPret);
-  while(analogRead(Metronome)<400);
+  while(analogRead(Metronome)<500);
   //while(ROBUS_IsBumper(2)!=true);
   unsigned int temp=millis();
   TransmissionSansFil(SignalDepart);
@@ -469,7 +479,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -479,7 +488,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -489,7 +497,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -499,7 +506,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -509,7 +515,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -519,7 +524,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -529,7 +533,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
@@ -539,7 +542,6 @@ void tempo(void)
   digitalWrite(BleuD,1);
   digitalWrite(RougeD,1);
   digitalWrite(VertD,1);
-  AX_BuzzerON(500,15);
   delay(15);
   digitalWrite(BleuD,0);
   digitalWrite(RougeD,0);
