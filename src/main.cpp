@@ -146,8 +146,19 @@ void partition (int couleur)
   Serial.println(millis()-new_temps);
   // if there is data ready
   // Take the time, and send it.  This will block until complete
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  radio.stopListening();
+
   TransmissionSansFil(RobotMaestroPret);
+
+
+  radio.openWritingPipe(pipes[1]);
+  radio.openReadingPipe(1,pipes[0]);
+  radio.startListening();
+
   while(ReceptionSansFil() != SignalDepart);
+
   delay(7000);
   long temps=millis();
   while(millis()-temps<16675)
