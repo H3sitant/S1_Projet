@@ -267,7 +267,7 @@ int music( int partition_C[2][70],int niveau)
   
   unsigned int temp=millis();
   TransmissionSansFil(SignalDepart);
-  while(((millis()-temp)%1000)!=0);
+  while(((millis()-temp)%500)!=0);
   tempo();
 
   unsigned long Temps_I=0;
