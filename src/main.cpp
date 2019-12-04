@@ -444,7 +444,7 @@ int detectionCouleur ()
         couleur=0;
     }
   //Serial.println(couleur);
-  //printf("%d\t%d\t%d\t%d\t%d\n\r",r,g,b,c,couleur);
+  printf("%d\t%d\t%d\t%d\t%d\n\r",r,g,b,c,couleur);
   return couleur;
 }
 
