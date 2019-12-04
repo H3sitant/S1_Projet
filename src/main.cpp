@@ -154,14 +154,14 @@ void partition (int couleur)
   radio.openReadingPipe(1,pipes[1]);
   radio.stopListening();
 
-  TransmissionSansFil(RobotMaestroPret);
+  //TransmissionSansFil(RobotMaestroPret);
 
 
   radio.openWritingPipe(pipes[1]);
   radio.openReadingPipe(1,pipes[0]);
   radio.startListening();
 
-  while(ReceptionSansFil() != SignalDepart);
+  while(ReceptionSansFil() != SignalDepart && ROBUS_IsBumper(2)!=true);
 
   delay(7000);
   long temps=millis();
