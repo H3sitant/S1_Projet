@@ -261,9 +261,9 @@ int music( int partition_C[2][70],int niveau)
   //else if(niveau==NiveauMoyen)delay(13000);
   //else delay(17000);
   
-  ReceptionSansFil(RobotMaestroPret);
-  //while(ROBUS_IsBumper(2)!=true);
-  while(analogRead(Metronome)<350 && ROBUS_IsBumper(2)!=true);
+  //ReceptionSansFil(RobotMaestroPret);
+  while(ROBUS_IsBumper(2)!=true);
+  //while(analogRead(Metronome)<350 && ROBUS_IsBumper(2)!=true);
   
   unsigned int temp=millis();
   TransmissionSansFil(SignalDepart);
