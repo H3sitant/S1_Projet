@@ -169,13 +169,13 @@ void loop()
 
   // Take the time, and send it.  This will block until complete
     
-  if(ROBUS_IsBumper(1)==true)
+  if(ROBUS_IsBumper(2)==true)
   { 
     int i=0;
     while(i==0)
     {
       int ana = analogRead(Metronome);
-      if(ana>550)
+      if(ana>350)
       Serial.println(ana);
     }
 
@@ -263,7 +263,7 @@ int music( int partition_C[2][70],int niveau)
   
   //ReceptionSansFil(RobotMaestroPret);
   //while(ROBUS_IsBumper(2)!=true);
-  while(analogRead(Metronome)<500);
+  while(analogRead(Metronome)<350);
   
   //unsigned int temp=millis();
   //TransmissionSansFil(SignalDepart);
