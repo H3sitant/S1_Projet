@@ -169,7 +169,7 @@ void loop()
 
   // Take the time, and send it.  This will block until complete
     
-  if(ROBUS_IsBumper(2)==true)
+  /*if(ROBUS_IsBumper(2)==true)
   { 
     int i=0;
     while(i==0)
@@ -179,7 +179,7 @@ void loop()
       Serial.println(ana);
     }
 
-  }
+  }*/
   int partition_C[2][70];
   if(digitalRead(8)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
