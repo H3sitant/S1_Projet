@@ -175,7 +175,7 @@ void loop()
     while(i==0)
     {
       int ana = analogRead(Metronome);
-      if(ana>550)
+      if(ana>50)
       Serial.println(ana);
     }
 
@@ -262,8 +262,8 @@ int music( int partition_C[2][70],int niveau)
   //else delay(17000);
   
   //ReceptionSansFil(RobotMaestroPret);
-  while(ROBUS_IsBumper(2)!=true);
-  //while(analogRead(Metronome)<350 && ROBUS_IsBumper(2)!=true);
+  //while(ROBUS_IsBumper(2)!=true);
+  while(analogRead(Metronome)<50);
   
   unsigned int temp=millis();
   TransmissionSansFil(SignalDepart);
