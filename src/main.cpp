@@ -414,7 +414,7 @@ Traitement note
 */
 void resultat(int note)
 {
-  if (note==100)
+  if (note==90)
   {
     Serial.println( "resultat: PARFAIT");
     for (int i=0;i<=100; i++)
