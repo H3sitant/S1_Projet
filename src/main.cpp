@@ -184,7 +184,7 @@ void loop()
   if(digitalRead(8)==HIGH)//choisir partition facile : changer pour Bouton Vert
   {
     radio.stopListening();
-    TransmissionSansFil(NiveauFacile);
+    //TransmissionSansFil(NiveauFacile);
     Serial.println("Facile");
     choix_partition ( partition_C, partition_F);
     
@@ -203,7 +203,7 @@ void loop()
   {
     radio.stopListening();
     //Envoyer moyen
-    TransmissionSansFil(NiveauMoyen);
+    //TransmissionSansFil(NiveauMoyen);
     
     Serial.println("Moyen");
     choix_partition ( partition_C, partition_M);
@@ -222,7 +222,7 @@ void loop()
   {
     radio.stopListening();
     //Envoyer difficile
-    TransmissionSansFil(NiveauDifficile);
+    //TransmissionSansFil(NiveauDifficile);
 
     Serial.println("Difficile");
     choix_partition ( partition_C, partition_D);
@@ -261,12 +261,13 @@ int music( int partition_C[2][70],int niveau)
   //else if(niveau==NiveauMoyen)delay(13000);
   //else delay(17000);
   
-  ReceptionSansFil(RobotMaestroPret);
-  while(analogRead(Metronome)<500);
+  //ReceptionSansFil(RobotMaestroPret);
   //while(ROBUS_IsBumper(2)!=true);
-  unsigned int temp=millis();
-  TransmissionSansFil(SignalDepart);
-  while(((millis()-temp)%1000)!=0);
+  while(analogRead(Metronome)<500);
+  
+  //unsigned int temp=millis();
+  //TransmissionSansFil(SignalDepart);
+  //while(((millis()-temp)%1000)!=0);
   tempo();
 
   unsigned long Temps_I=0;
