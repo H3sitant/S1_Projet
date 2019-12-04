@@ -414,7 +414,7 @@ Traitement note
 */
 void resultat(int note)
 {
-  if (note==100)
+  if (note>90)
   {
     Serial.println( "resultat: PARFAIT");
     for (int i=0;i<=100; i++)
@@ -607,7 +607,7 @@ int ReceptionSansFil(int ValeurAttendu)
         radio.stopListening();
         } 
       }
-    } while(message !=ValeurAttendu);
+    } while(message !=ValeurAttendu||ROBUS_IsBumper(2)==true);
   return message;
 }
 
@@ -616,7 +616,6 @@ int TransmissionAvecFil(int ValeurTx)
 {
   Serial1.write(ValeurTx);
   return 1;
-
 }
 
 
