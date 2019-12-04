@@ -105,24 +105,27 @@ Code Robot esclave
   //Recevoir valeur
   byte message=ReceptionSansFil();
   // if there is data ready
-  
+  /*if (ROBUS_IsBumper(2)== true){
+
+    detectionCouleur();
+  }*/
   if(message==NiveauFacile)
   {
     //                                                                                                                                                                                                               while(detectionCouleur()!=45);
     radio.stopListening();
-    Serial.println(1);
+    Serial.println("Facile");
     partition(Vert);
   }
   else if(message==NiveauMoyen)
   {
     radio.stopListening();
-    Serial.println(2);
+    Serial.println("Moyen");
     partition(Jaune);
   }
   else if(message==NiveauDifficile)
   {
     radio.stopListening();
-    Serial.println(3);
+    Serial.println("Difficile");
     partition(Rouge);
   }
 
@@ -137,7 +140,7 @@ void partition (int couleur)
   unsigned long new_temps=millis();
   while( detectionCouleur()!=couleur)
   {
-    detecteurLigne(0.4,1);
+    detecteurLigne(0.35,1);
   }
   Avancer(5.7*2.54/2+8.5,0,-speed,1);
   delay(100);
@@ -180,7 +183,10 @@ void partition (int couleur)
     }
     Avancer(5.7*2.54*2,0,-speed,1);
   }
-  Avancer(5.7*2.54*2+9.53,0,-speed,1);
+  for (int i = 0; i < (5.7*2.54*2+9.53)/0.25; i++)
+  {
+    detecteurLigne(speed,1);
+  }
   Rotation1(190,20,0);
 }
 
@@ -417,13 +423,10 @@ int detectionCouleur ()
 
   tcs.getRawData(&r,  &g,  &b,  &c);
 
-  /*Serial.println(r);
-  Serial.println(g);
-  Serial.println(b);
-  Serial.println(c);
-  delay(1000);*/
+  //printf("%d\t%d\t%d\t%d\t",r,g,b,c);
+  delay(1000);
  
-    if(r>27 && r<47 && g>45 && g<70 && b>55 && b<70 && c>140 && c<180) //trouvé valeur RGBC pour bleu
+    if(r>27 && r<40 && g>45 && g<70 && b>55 && b<70 && c>140 && c<171) //trouvé valeur RGBC pour bleu
     {
         couleur=Vert;
         
@@ -440,7 +443,8 @@ int detectionCouleur ()
     {
         couleur=0;
     }
-  Serial.println(couleur);
+  //Serial.println(couleur);
+  //printf("%d\t%d\t%d\t%d\t%d\n\r",r,g,b,c,couleur);
   return couleur;
 }
 
@@ -481,7 +485,7 @@ Dectecteur de ligne
  {
   int Detect=0;
   float tension = analogRead(A8)*5.0/1023.0;
-  //Serial.println(tension);
+  Serial.println(tension);
 
  
 
@@ -490,7 +494,7 @@ Dectecteur de ligne
   if (tension<0.5) //option 1(Aucun) 0.00 
   {
     Detect=Millieux;
-  }
+    }
   else if(tension < 1 && tension >0.5) //option 2(X3) 0.71
   {
     Detect=ligne;
@@ -534,7 +538,6 @@ Dectecteur de ligne
   }
   Avancer(0.25,0,-TargetSpeed,0);
 
-  
   return Detect;
  }
 
