@@ -109,7 +109,8 @@ Code Robot esclave
 
     detectionCouleur();
   }*/
-  if(message==NiveauFacile)
+  //if(message==NiveauFacile)
+  if(ROBUS_IsBumper(0)==true)
   {
     //                                                                                                                                                                                                               while(detectionCouleur()!=45);
     radio.stopListening();
@@ -424,7 +425,7 @@ int detectionCouleur ()
   tcs.getRawData(&r,  &g,  &b,  &c);
 
   //printf("%d\t%d\t%d\t%d\t",r,g,b,c);
-  delay(1000);
+  //delay(1000);
  
     if(r>27 && r<40 && g>45 && g<70 && b>55 && b<70 && c>140 && c<171) //trouvé valeur RGBC pour bleu
     {
