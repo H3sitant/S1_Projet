@@ -109,8 +109,8 @@ Code Robot esclave
 
     detectionCouleur();
   }*/
-  //if(message==NiveauFacile)
-  if(ROBUS_IsBumper(0)==true)
+  if(message==NiveauFacile)
+  //if(ROBUS_IsBumper(0)==true)
   {
     //                                                                                                                                                                                                               while(detectionCouleur()!=45);
     radio.stopListening();
